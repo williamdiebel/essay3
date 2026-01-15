@@ -304,102 +304,690 @@ panel_extended_complete <- panel_extended_complete %>% arrange(gvkey, year)
 
 saveRDS(panel_extended_complete, "panel_extended_complete.rds")
 panel_extended_complete <- readRDS("panel_extended_complete.rds")
-#   7. compute the peer share instrument ####
+#   7. compute the peer share instruments ####
 # converting to data table for speed
 setDT(panel_extended_complete)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# INSTRUMENT 1: Industry-based peer share (peer_cdp_share_lag)
+# ──────────────────────────────────────────────────────────────────────────────
+# This instrument captures the share of firms in the SAME INDUSTRY-YEAR that are
+# CDP Supply Chain members, EXCLUDING the focal firm itself.
+#
+# Why exclude the focal firm?
+#   → We want to measure PEER behavior, not the firm's own choice
+#   → This avoids mechanical correlation (reflection problem)
+#
+# Logic:
+#   1. For each industry-year combination, count total CDP members
+#   2. Subtract 1 if the focal firm is a member
+#   3. Divide by (N - 1) where N is total firms in that industry-year
+#   4. Lag by one year to ensure temporal precedence (peers influence future)
+# ──────────────────────────────────────────────────────────────────────────────
+
   # (a) industry-year peer share EXCLUDING focal firm
 panel_extended_complete[ , peer_cdp_share :=
                       ifelse(.N == 1, NA_real_,     # single-firm industry-year
                              (sum(cdp_sc_member, na.rm = TRUE) - cdp_sc_member) /
                                (.N - 1)),
                     by = .(FourDigitName, year)]
-  # (b) lag by one year for each firm
+
+  # (b) lag by one year for each firm (so we use LAST year's peer behavior)
 panel_extended_complete[ , peer_cdp_share_lag := shift(peer_cdp_share, n = 1, type = "lag"),
                     by = gvkey]
 
-  # replace NA from first year or single-firm groups with 0
+  # (c) replace NA from first year or single-firm groups with 0
+  #     (conservative approach: missing = no peer influence)
 panel_extended_complete[is.na(peer_cdp_share_lag), peer_cdp_share_lag := 0]
 
-  # quick sanity check
-summary(panel_extended_complete$peer_cdp_share)
+  # Quick sanity check: what's the distribution of industry peer shares?
+cat("\n──────────────────────────────────────────────────────────────\n")
+cat("Summary of INDUSTRY-based peer CDP share (lagged):\n")
+cat("──────────────────────────────────────────────────────────────\n")
+summary(panel_extended_complete$peer_cdp_share_lag)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# INSTRUMENT 2: Country-based peer share (peer_cdp_share_country_lag)
+# ──────────────────────────────────────────────────────────────────────────────
+# This instrument captures the share of firms in the SAME COUNTRY-YEAR that are
+# CDP Supply Chain members, EXCLUDING the focal firm itself.
+#
+# Why use country as an alternative peer group?
+#   → Country-level institutional pressures (regulations, norms, media)
+#   → Complements industry-based instrument for overidentification tests
+#   → Different "peer" definition may have independent variation
+#
+# Logic: Identical to industry instrument but groups by country instead
+# ──────────────────────────────────────────────────────────────────────────────
+
+  # (a) country-year peer share EXCLUDING focal firm
+panel_extended_complete[ , peer_cdp_share_country :=
+                      ifelse(.N == 1, NA_real_,     # single-firm country-year
+                             (sum(cdp_sc_member, na.rm = TRUE) - cdp_sc_member) /
+                               (.N - 1)),
+                    by = .(headquarter_country, year)]
+
+  # (b) lag by one year for each firm (use LAST year's country peers)
+panel_extended_complete[ , peer_cdp_share_country_lag := shift(peer_cdp_share_country, n = 1, type = "lag"),
+                    by = gvkey]
+
+  # (c) replace NA from first year or single-firm groups with 0
+panel_extended_complete[is.na(peer_cdp_share_country_lag), peer_cdp_share_country_lag := 0]
+
+  # Quick sanity check: what's the distribution of country peer shares?
+cat("\n──────────────────────────────────────────────────────────────\n")
+cat("Summary of COUNTRY-based peer CDP share (lagged):\n")
+cat("──────────────────────────────────────────────────────────────\n")
+summary(panel_extended_complete$peer_cdp_share_country_lag)
 
 #   8. save and export as panel_extended_instrument.rds ####
 panel_extended_instrument <- panel_extended_complete
 saveRDS(panel_extended_instrument, "panel_extended_instrument.rds")
 complete_data_2022 <- readRDS("complete_data_2022.rds")
+
+# Select BOTH instruments (industry and country) to merge into main dataset
 panel_extended_instrument_pruned <- panel_extended_instrument %>%
-  select(gvkey, year, peer_cdp_share, peer_cdp_share_lag)
+  select(gvkey, year, peer_cdp_share, peer_cdp_share_lag,
+         peer_cdp_share_country, peer_cdp_share_country_lag)
+
+# Merge instruments into the main analysis dataset
 complete_data_2022_instrument <- complete_data_2022 %>%
   left_join(panel_extended_instrument_pruned,
             by = c("gvkey", "year")) %>% ungroup()
+
 saveRDS(complete_data_2022_instrument, "complete_data_2022_instrument.rds")
 complete_data_2022_instrument <- readRDS("complete_data_2022_instrument.rds")
 
-#   9. run the 2SLS model ####
+#   9. run the 2SLS model with BOTH instruments ####
 
-## First-stage: Instrument relevance test ####
-# Controls identical to baseline model
+# ══════════════════════════════════════════════════════════════════════════════
+# TWO-STAGE LEAST SQUARES (2SLS) ESTIMATION
+# ══════════════════════════════════════════════════════════════════════════════
+# Endogenous variable: cdp_sc_member (CDP Supply Chain Program membership)
+# Instruments:
+#   1. peer_cdp_share_lag (industry peers' CDP membership)
+#   2. peer_cdp_share_country_lag (country peers' CDP membership)
+# Outcome: sbti_commitment_lead1 (Science-Based Targets initiative commitment)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Load required packages for IV estimation
+library(lfe)      # For felm() function (2SLS with fixed effects)
+library(AER)      # For ivreg() and diagnostic tests
+library(sandwich) # For robust standard errors
+library(lmtest)   # For coefficient tests
+
+cat("\n\n")
+cat("══════════════════════════════════════════════════════════════════════════════\n")
+cat("                         FIRST-STAGE REGRESSIONS                              \n")
+cat("══════════════════════════════════════════════════════════════════════════════\n\n")
+
+# ──────────────────────────────────────────────────────────────────────────────
+# FIRST-STAGE: Test instrument RELEVANCE
+# ──────────────────────────────────────────────────────────────────────────────
+# Question: Do our instruments predict CDP membership?
+#
+# We regress the endogenous variable (cdp_sc_member) on BOTH instruments
+# plus all control variables and fixed effects.
+#
+# What we're looking for:
+#   ✓ Instruments should be STATISTICALLY SIGNIFICANT predictors
+#   ✓ F-statistic should be > 10 (rule of thumb for "strong" instruments)
+#   ✓ Higher F-stats = less weak instrument bias in 2SLS
+# ──────────────────────────────────────────────────────────────────────────────
+
+# First-stage regression with BOTH instruments
 first_stage <- feols(
-  cdp_sc_member ~ peer_cdp_share_lag +
-    esc_incidents_highreach +
-    e_disc_coalesced_zeros + e_disc_missing +
-    log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log +
-    tll_lt_w1_at_w1 |                          # fixed effects
-    headquarter_country + as.factor(year),
+  cdp_sc_member ~ peer_cdp_share_lag + peer_cdp_share_country_lag +
+    # Control variables (same as in baseline model):
+    esc_incidents_highreach +              # Environmental incidents
+    e_disc_coalesced_zeros + e_disc_missing +  # Emissions disclosure
+    log(scope1_zeros + 1) + scope1_missing +   # Scope 1 emissions
+    roa_oibdp_w1_at_w1 +                   # Return on assets
+    at_usd_winsorized_1_log +              # Firm size (log assets)
+    tll_lt_w1_at_w1 |                      # Leverage
+    # Fixed effects:
+    headquarter_country + as.factor(year), # Country and year FE
   data    = complete_data_2022_instrument,
-  cluster = ~ gvkey
+  cluster = ~ gvkey                        # Cluster SE by firm
 )
 
-# Print concise table
+# Display first-stage results
+cat("First-Stage Regression Results:\n")
+cat("────────────────────────────────────────────────────────────────────────────\n")
 summary(first_stage)
 
-# Extract instrument F-statistic (or t-stat)
-#  For a single IV, F = t^2
+# ──────────────────────────────────────────────────────────────────────────────
+# INSTRUMENT STRENGTH TEST (F-test)
+# ──────────────────────────────────────────────────────────────────────────────
+# With multiple instruments, we use a JOINT F-test:
+#   H0: Both instruments have coefficient = 0 (jointly)
+#   HA: At least one instrument predicts CDP membership
+#
+# Rule of thumb (Stock & Yogo 2005):
+#   F > 10  → instruments are "strong" (acceptable bias < 10%)
+#   F < 10  → "weak instruments" problem (biased 2SLS estimates)
+# ──────────────────────────────────────────────────────────────────────────────
 
-t_iv <- coeftable(first_stage)["peer_cdp_share_lag", 't value']
-F_iv <- t_iv^2
-cat("\nFirst-stage strength:\n  t-stat =", round(t_iv, 2),
-    " →  F-stat =", round(F_iv, 2), "\n")
+# Extract coefficients for BOTH instruments
+coef_table <- coeftable(first_stage)
 
-# Rule of thumb: F ≥ 10 ⇒ strong instrument
+# Individual t-statistics for each instrument
+t_industry <- coef_table["peer_cdp_share_lag", "t value"]
+t_country  <- coef_table["peer_cdp_share_country_lag", "t value"]
 
-    # First-stage strength:
-    #   t-stat = 3.43  →  F-stat = 11.79
+# Joint F-test using Wald test
+# Test: both instrument coefficients are jointly zero
+wald_test <- wald(first_stage,
+                  c("peer_cdp_share_lag = 0",
+                    "peer_cdp_share_country_lag = 0"))
 
-# Second‐stage: 2SLS of SBTi commitment on instrumented CDP SCP membership ####
+# The F-statistic for joint significance
+F_joint <- wald_test$stat
 
-# install.packages("lfe")  # if you haven’t already
-library(lfe)
+cat("\n\n")
+cat("══════════════════════════════════════════════════════════════════════════════\n")
+cat("                    INSTRUMENT STRENGTH DIAGNOSTICS                           \n")
+cat("══════════════════════════════════════════════════════════════════════════════\n\n")
+cat("Individual t-statistics:\n")
+cat("  Industry instrument (peer_cdp_share_lag):     t =", round(t_industry, 3), "\n")
+cat("  Country instrument (peer_cdp_share_country_lag): t =", round(t_country, 3), "\n\n")
+cat("Joint F-test for both instruments:\n")
+cat("  F-statistic =", round(F_joint, 2), "\n")
+cat("  Rule of thumb: F > 10 indicates strong instruments\n")
 
-# 1) Coerce FEs to factors (just in case)
+if (F_joint > 10) {
+  cat("  ✓ PASS: Instruments are sufficiently strong (F > 10)\n")
+} else {
+  cat("  ✗ WARNING: Weak instruments detected (F < 10)\n")
+  cat("    → 2SLS estimates may be biased toward OLS\n")
+}
+
+cat("\n")
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SECOND-STAGE: 2SLS Estimation
+# ──────────────────────────────────────────────────────────────────────────────
+# Now we use the PREDICTED values of cdp_sc_member from the first stage
+# to estimate its effect on SBTi commitment.
+#
+# Why 2SLS?
+#   → Removes endogeneity bias from cdp_sc_member
+#   → Uses only the variation in CDP membership explained by peer behavior
+#   → Gives us a "cleaner" causal estimate
+# ──────────────────────────────────────────────────────────────────────────────
+
+cat("══════════════════════════════════════════════════════════════════════════════\n")
+cat("                        SECOND-STAGE REGRESSION (2SLS)                        \n")
+cat("══════════════════════════════════════════════════════════════════════════════\n\n")
+
+# Ensure factor variables are properly coded
 complete_data_2022_instrument <- complete_data_2022_instrument %>%
   mutate(
     headquarter_country = as.factor(headquarter_country),
     FourDigitName       = as.factor(FourDigitName),
     year                = as.factor(year),
-    gvkey                = as.factor(gvkey)
+    gvkey               = as.factor(gvkey)
   )
 
-# 2) 2SLS with felm, clustering on gvkey via the 4th pipe
-second_stage_felm <- felm(
-  # (1) structural eq: DV ~ exogenous
-  sbti_commitment_lead1 ~ 
+# 2SLS estimation using felm (handles fixed effects efficiently)
+# Syntax:
+#   outcome ~ exogenous | fixed_effects | (endogenous ~ instruments) | cluster
+second_stage <- felm(
+  # Outcome and exogenous controls:
+  sbti_commitment_lead1 ~
     esc_incidents_highreach +
     e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log +
     tll_lt_w1_at_w1
-  # (2) fixed effects
+  # Fixed effects:
   | headquarter_country + year
-  # (3) IV part: endogenous ~ instrument
-  | (cdp_sc_member ~ peer_cdp_share_lag)
-  # (4) cluster on gvkey 
+  # IV specification (endogenous ~ instruments):
+  | (cdp_sc_member ~ peer_cdp_share_lag + peer_cdp_share_country_lag)
+  # Cluster standard errors by firm:
   | gvkey,
   data = complete_data_2022_instrument
 )
 
-summary(second_stage_felm)
+# Display second-stage results
+cat("Second-Stage (2SLS) Results:\n")
+cat("────────────────────────────────────────────────────────────────────────────\n")
+summary(second_stage)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# OVERIDENTIFICATION TEST (Sargan-Hansen J-test)
+# ──────────────────────────────────────────────────────────────────────────────
+# We have 2 instruments for 1 endogenous variable → system is OVERIDENTIFIED
+# This allows us to test whether instruments are VALID (uncorrelated with errors)
+#
+# Sargan-Hansen J-test:
+#   H0: All instruments are valid (uncorrelated with the error term)
+#   HA: At least one instrument is invalid (correlated with errors)
+#
+# What we want:
+#   ✓ FAIL to reject H0 (p > 0.05) → instruments appear valid
+#   ✗ Reject H0 (p < 0.05) → at least one instrument is suspect
+#
+# CAVEAT: This test has low power, so passing it doesn't guarantee validity
+# ──────────────────────────────────────────────────────────────────────────────
+
+cat("\n\n")
+cat("══════════════════════════════════════════════════════════════════════════════\n")
+cat("                  OVERIDENTIFICATION TEST (Sargan-Hansen J)                   \n")
+cat("══════════════════════════════════════════════════════════════════════════════\n\n")
+
+# We need to use ivreg() from AER package for the Sargan test
+# (felm doesn't provide this diagnostic)
+
+# Prepare data: remove observations with missing values
+data_complete <- complete_data_2022_instrument %>%
+  filter(!is.na(sbti_commitment_lead1),
+         !is.na(cdp_sc_member),
+         !is.na(peer_cdp_share_lag),
+         !is.na(peer_cdp_share_country_lag)) %>%
+  mutate(year = as.factor(year),
+         headquarter_country = as.factor(headquarter_country))
+
+# Run 2SLS using ivreg (without fixed effects for simplicity in diagnostics)
+# NOTE: This is just for the J-test; main results use felm with FE above
+iv_model <- ivreg(
+  sbti_commitment_lead1 ~ cdp_sc_member +
+    esc_incidents_highreach +
+    e_disc_coalesced_zeros + e_disc_missing +
+    log(scope1_zeros + 1) + scope1_missing +
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log +
+    tll_lt_w1_at_w1 +
+    year + headquarter_country |  # Include FE as regressors
+    # Instruments (include all exogenous + instruments):
+    esc_incidents_highreach +
+    e_disc_coalesced_zeros + e_disc_missing +
+    log(scope1_zeros + 1) + scope1_missing +
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log +
+    tll_lt_w1_at_w1 +
+    year + headquarter_country +
+    peer_cdp_share_lag + peer_cdp_share_country_lag,
+  data = data_complete
+)
+
+# Conduct Sargan-Hansen test
+# This tests whether the overidentifying restrictions are valid
+# (i.e., whether our 2 instruments are truly exogenous)
+tryCatch({
+  # Get residuals from 2SLS
+  resid_2sls <- residuals(iv_model)
+
+  # Regress residuals on ALL instruments and exogenous variables
+  aux_reg <- lm(resid_2sls ~ peer_cdp_share_lag + peer_cdp_share_country_lag +
+                  esc_incidents_highreach +
+                  e_disc_coalesced_zeros + e_disc_missing +
+                  log(scope1_zeros + 1) + scope1_missing +
+                  roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log +
+                  tll_lt_w1_at_w1 +
+                  year + headquarter_country,
+                data = data_complete)
+
+  # Compute J-statistic: n * R²
+  n <- nobs(aux_reg)
+  r_squared <- summary(aux_reg)$r.squared
+  J_stat <- n * r_squared
+
+  # Degrees of freedom = number of overidentifying restrictions
+  # We have 2 instruments for 1 endogenous variable → df = 2 - 1 = 1
+  df_J <- 1
+
+  # P-value from chi-squared distribution
+  p_value_J <- 1 - pchisq(J_stat, df = df_J)
+
+  cat("Sargan-Hansen J-test for overidentifying restrictions:\n")
+  cat("────────────────────────────────────────────────────────────────────────────\n")
+  cat("  J-statistic =", round(J_stat, 3), "\n")
+  cat("  Degrees of freedom =", df_J, "\n")
+  cat("  P-value =", round(p_value_J, 4), "\n\n")
+  cat("Interpretation:\n")
+  cat("  H0: Both instruments are valid (exogenous)\n")
+  if (p_value_J > 0.05) {
+    cat("  ✓ PASS: Cannot reject H0 (p > 0.05)\n")
+    cat("    → No evidence against instrument validity\n")
+    cat("    → Both instruments appear to satisfy exclusion restriction\n")
+  } else {
+    cat("  ✗ WARNING: Reject H0 (p < 0.05)\n")
+    cat("    → Evidence that at least one instrument may be invalid\n")
+    cat("    → One or both instruments may be correlated with the error term\n")
+  }
+  cat("\n")
+  cat("CAVEAT: J-test has low power. Passing doesn't prove validity,\n")
+  cat("        but failing raises serious concerns about instrument exogeneity.\n")
+
+  # Store for export
+  j_test_results <- data.frame(
+    Statistic = "J-statistic",
+    Value = round(J_stat, 3),
+    DF = df_J,
+    P_value = round(p_value_J, 4),
+    Interpretation = ifelse(p_value_J > 0.05,
+                           "Cannot reject H0: Instruments appear valid",
+                           "Reject H0: Evidence of invalid instrument(s)")
+  )
+
+}, error = function(e) {
+  cat("Note: Could not compute Sargan-Hansen test.\n")
+  cat("This may occur if there are too few degrees of freedom or convergence issues.\n")
+  j_test_results <- NULL
+})
+
+# ══════════════════════════════════════════════════════════════════════════════
+#                        EXPORT RESULTS TO MARKDOWN TABLES
+# ══════════════════════════════════════════════════════════════════════════════
+
+cat("\n\n")
+cat("══════════════════════════════════════════════════════════════════════════════\n")
+cat("                        EXPORTING RESULTS TO TABLES/                          \n")
+cat("══════════════════════════════════════════════════════════════════════════════\n\n")
+
+# Create tables directory if it doesn't exist
+if (!dir.exists("tables")) {
+  dir.create("tables")
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TABLE 1: First-Stage Results
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Extract first-stage coefficients and statistics
+first_stage_coef <- coeftable(first_stage)
+
+# Create a clean table for the instruments only
+first_stage_table <- data.frame(
+  Variable = c("Industry peer share (lagged)", "Country peer share (lagged)"),
+  Coefficient = c(
+    round(first_stage_coef["peer_cdp_share_lag", "Estimate"], 4),
+    round(first_stage_coef["peer_cdp_share_country_lag", "Estimate"], 4)
+  ),
+  Std_Error = c(
+    round(first_stage_coef["peer_cdp_share_lag", "Std. Error"], 4),
+    round(first_stage_coef["peer_cdp_share_country_lag", "Std. Error"], 4)
+  ),
+  t_value = c(
+    round(first_stage_coef["peer_cdp_share_lag", "t value"], 3),
+    round(first_stage_coef["peer_cdp_share_country_lag", "t value"], 3)
+  ),
+  p_value = c(
+    format.pval(first_stage_coef["peer_cdp_share_lag", "Pr(>|t|)"], digits = 3),
+    format.pval(first_stage_coef["peer_cdp_share_country_lag", "Pr(>|t|)"], digits = 3)
+  ),
+  stringsAsFactors = FALSE
+)
+
+# Write to markdown
+cat("\nExporting First-Stage Results...\n")
+writeLines(
+  c("# First-Stage Regression Results",
+    "",
+    "**Dependent Variable:** CDP Supply Chain Member (cdp_sc_member)",
+    "",
+    "**Model:** Linear probability model with country and year fixed effects",
+    "",
+    "**Instruments:**",
+    "",
+    paste0("| Variable | Coefficient | Std. Error | t-value | p-value |"),
+    paste0("|----------|-------------|------------|---------|---------|"),
+    paste0("| ", first_stage_table$Variable, " | ",
+           first_stage_table$Coefficient, " | ",
+           first_stage_table$Std_Error, " | ",
+           first_stage_table$t_value, " | ",
+           first_stage_table$p_value, " |"),
+    "",
+    "**Note:** Standard errors clustered by firm (gvkey). All control variables included.",
+    ""
+  ),
+  "tables/first_stage_results.md"
+)
+cat("  ✓ Saved to tables/first_stage_results.md\n")
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TABLE 2: Instrument Strength Diagnostics
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Create diagnostics table
+diagnostics_table <- data.frame(
+  Test = c(
+    "Industry instrument t-statistic",
+    "Country instrument t-statistic",
+    "Joint F-statistic (both instruments)",
+    "Stock-Yogo critical value (10% bias)",
+    "Strength assessment"
+  ),
+  Value = c(
+    round(t_industry, 3),
+    round(t_country, 3),
+    round(F_joint, 2),
+    "19.93",  # Stock-Yogo critical value for 2 instruments
+    ifelse(F_joint > 10, "PASS: Strong instruments", "WARNING: Weak instruments")
+  ),
+  stringsAsFactors = FALSE
+)
+
+cat("\nExporting Instrument Strength Diagnostics...\n")
+writeLines(
+  c("# Instrument Strength Diagnostics",
+    "",
+    "**Test for Weak Instruments**",
+    "",
+    paste0("| Test | Value |"),
+    paste0("|------|-------|"),
+    paste0("| ", diagnostics_table$Test, " | ", diagnostics_table$Value, " |"),
+    "",
+    "**Interpretation:**",
+    "",
+    "- **Rule of thumb (Stock & Yogo 2005):** F > 10 indicates instruments are sufficiently strong",
+    "- **Stock-Yogo critical value:** For 2 instruments and 1 endogenous variable, F > 19.93 ensures max 10% bias",
+    paste0("- **Result:** ", ifelse(F_joint > 10,
+                                   "Instruments are strong enough (F > 10)",
+                                   "WARNING: Weak instruments detected (F < 10)")),
+    "",
+    "**What this means:**",
+    "",
+    "A strong first-stage F-statistic indicates that our instruments (peer CDP membership shares)",
+    "have sufficient predictive power for the endogenous variable (firm CDP membership).",
+    "This reduces weak instrument bias in the 2SLS estimates.",
+    ""
+  ),
+  "tables/instrument_strength.md"
+)
+cat("  ✓ Saved to tables/instrument_strength.md\n")
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TABLE 3: Second-Stage (2SLS) Results
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Extract second-stage coefficient for instrumented CDP variable
+second_stage_coef <- coeftable(second_stage)
+
+# Get the instrumented CDP variable row (it may be named differently)
+# felm typically names it with backticks
+cdp_var_name <- grep("cdp_sc_member", rownames(second_stage_coef), value = TRUE)[1]
+
+second_stage_table <- data.frame(
+  Variable = "CDP Supply Chain Member (instrumented)",
+  Coefficient = round(second_stage_coef[cdp_var_name, "Estimate"], 4),
+  Std_Error = round(second_stage_coef[cdp_var_name, "Std. Error"], 4),
+  t_value = round(second_stage_coef[cdp_var_name, "t value"], 3),
+  p_value = format.pval(second_stage_coef[cdp_var_name, "Pr(>|t|)"], digits = 3),
+  stringsAsFactors = FALSE
+)
+
+cat("\nExporting Second-Stage (2SLS) Results...\n")
+writeLines(
+  c("# Second-Stage Regression Results (2SLS)",
+    "",
+    "**Dependent Variable:** SBTi Commitment (lead 1 year)",
+    "",
+    "**Method:** Two-Stage Least Squares (2SLS) with country and year fixed effects",
+    "",
+    "**Instrumented Variable:**",
+    "",
+    paste0("| Variable | Coefficient | Std. Error | t-value | p-value |"),
+    paste0("|----------|-------------|------------|---------|---------|"),
+    paste0("| ", second_stage_table$Variable, " | ",
+           second_stage_table$Coefficient, " | ",
+           second_stage_table$Std_Error, " | ",
+           second_stage_table$t_value, " | ",
+           second_stage_table$p_value, " |"),
+    "",
+    "**Instruments used:**",
+    "- Industry peer CDP share (lagged)",
+    "- Country peer CDP share (lagged)",
+    "",
+    "**Interpretation:**",
+    "",
+    paste0("The coefficient ", second_stage_table$Coefficient,
+           " represents the causal effect of CDP Supply Chain"),
+    "membership on the probability of making an SBTi commitment in the following year,",
+    "after accounting for endogeneity using peer-based instruments.",
+    "",
+    "**Note:** Standard errors clustered by firm (gvkey). All control variables included.",
+    ""
+  ),
+  "tables/second_stage_results.md"
+)
+cat("  ✓ Saved to tables/second_stage_results.md\n")
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TABLE 4: Sargan-Hansen Overidentification Test
+# ──────────────────────────────────────────────────────────────────────────────
+
+if (exists("j_test_results") && !is.null(j_test_results)) {
+  cat("\nExporting Sargan-Hansen J-test Results...\n")
+  writeLines(
+    c("# Sargan-Hansen Overidentification Test",
+      "",
+      "**Test for Instrument Validity**",
+      "",
+      paste0("| Statistic | Value | DF | p-value | Interpretation |"),
+      paste0("|-----------|-------|----|---------:|----------------|"),
+      paste0("| ", j_test_results$Statistic, " | ",
+             j_test_results$Value, " | ",
+             j_test_results$DF, " | ",
+             j_test_results$P_value, " | ",
+             j_test_results$Interpretation, " |"),
+      "",
+      "**What this test does:**",
+      "",
+      "The Sargan-Hansen J-test checks whether our instruments are valid (exogenous).",
+      "With 2 instruments for 1 endogenous variable, we have 1 overidentifying restriction",
+      "that can be tested.",
+      "",
+      "**Hypotheses:**",
+      "- H0: Both instruments are valid (uncorrelated with the error term)",
+      "- HA: At least one instrument is invalid (correlated with the error term)",
+      "",
+      "**Interpretation:**",
+      paste0("- p-value = ", j_test_results$P_value),
+      ifelse(j_test_results$P_value > 0.05,
+             "- ✓ PASS: Cannot reject H0 (p > 0.05)",
+             "- ✗ WARNING: Reject H0 (p < 0.05)"),
+      ifelse(j_test_results$P_value > 0.05,
+             "- No evidence against instrument validity",
+             "- Evidence that at least one instrument may be invalid"),
+      "",
+      "**Important caveat:**",
+      "",
+      "The J-test has relatively low statistical power. Failing to reject H0 doesn't *prove*",
+      "the instruments are valid, but rejecting H0 would raise serious concerns about",
+      "instrument exogeneity and the validity of the 2SLS estimates.",
+      ""
+    ),
+    "tables/sargan_hansen_test.md"
+  )
+  cat("  ✓ Saved to tables/sargan_hansen_test.md\n")
+} else {
+  cat("\nNote: Sargan-Hansen test could not be computed.\n")
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TABLE 5: Summary of All IV Diagnostic Tests
+# ──────────────────────────────────────────────────────────────────────────────
+
+cat("\nExporting Summary of Diagnostics...\n")
+
+summary_lines <- c(
+  "# Summary of Instrumental Variable Diagnostics",
+  "",
+  "## Overview",
+  "",
+  "This document summarizes the key diagnostic tests for the 2SLS estimation of the effect",
+  "of CDP Supply Chain membership on SBTi commitment.",
+  "",
+  "## Instruments Used",
+  "",
+  "1. **Industry peer share (lagged):** Share of firms in the same industry-year that are CDP members",
+  "2. **Country peer share (lagged):** Share of firms in the same country-year that are CDP members",
+  "",
+  "Both instruments exclude the focal firm from the peer calculation to avoid mechanical correlation.",
+  "",
+  "## Diagnostic Test Results",
+  "",
+  "### 1. Instrument Relevance (First-Stage F-test)",
+  "",
+  paste0("- **Joint F-statistic:** ", round(F_joint, 2)),
+  paste0("- **Stock-Yogo critical value (10% bias):** 19.93"),
+  paste0("- **Assessment:** ", ifelse(F_joint > 10, "✓ PASS - Strong instruments", "✗ WARNING - Weak instruments")),
+  "",
+  ifelse(F_joint > 10,
+         "The F-statistic exceeds the rule-of-thumb threshold of 10, indicating our instruments are sufficiently strong.",
+         "WARNING: The F-statistic is below 10, suggesting potential weak instrument bias."),
+  ""
+)
+
+# Add J-test results if available
+if (exists("j_test_results") && !is.null(j_test_results)) {
+  summary_lines <- c(summary_lines,
+    "### 2. Instrument Validity (Sargan-Hansen J-test)",
+    "",
+    paste0("- **J-statistic:** ", j_test_results$Value),
+    paste0("- **p-value:** ", j_test_results$P_value),
+    paste0("- **Assessment:** ", ifelse(j_test_results$P_value > 0.05,
+                                       "✓ PASS - No evidence against validity",
+                                       "✗ WARNING - Possible invalid instrument")),
+    "",
+    ifelse(j_test_results$P_value > 0.05,
+           "Cannot reject the null hypothesis that instruments are valid (p > 0.05).",
+           "The null hypothesis of valid instruments is rejected (p < 0.05), raising concerns."),
+    ""
+  )
+}
+
+summary_lines <- c(summary_lines,
+  "## Key Takeaways",
+  "",
+  paste0("1. **Instrument strength:** ", ifelse(F_joint > 10, "Sufficient", "Insufficient")),
+  paste0("2. **Instrument validity:** ",
+         ifelse(exists("j_test_results") && !is.null(j_test_results) && j_test_results$P_value > 0.05,
+                "No evidence against exogeneity",
+                "See detailed results above")),
+  "3. **Conclusion:** ",
+  "",
+  ifelse(F_joint > 10 && exists("j_test_results") && !is.null(j_test_results) && j_test_results$P_value > 0.05,
+         "Both diagnostic tests pass, supporting the validity of the 2SLS estimates.",
+         "Review individual test results for potential concerns about instrument quality."),
+  "",
+  "## Additional Files",
+  "",
+  "See the following files for detailed results:",
+  "- `first_stage_results.md` - First-stage regression coefficients",
+  "- `instrument_strength.md` - Detailed F-test diagnostics",
+  "- `second_stage_results.md` - 2SLS coefficient estimates",
+  "- `sargan_hansen_test.md` - Overidentification test results",
+  ""
+)
+
+writeLines(summary_lines, "tables/iv_diagnostics_summary.md")
+cat("  ✓ Saved to tables/iv_diagnostics_summary.md\n")
+
+cat("\n")
+cat("══════════════════════════════════════════════════════════════════════════════\n")
+cat("All results exported to tables/ directory\n")
+cat("══════════════════════════════════════════════════════════════════════════════\n\n")
 
 # 10. Baseline models ####
 # Main fixed effects LPM model specifications ####
