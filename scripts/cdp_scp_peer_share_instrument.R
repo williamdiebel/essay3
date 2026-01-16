@@ -3,6 +3,7 @@ library(tidyverse)
 library(data.table)
 library(fixest)
 library(sandwich)
+library(text2vec)  # For fuzzy string matching using TF-IDF
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # Preamble ####
 # The purpose of this script is twofold:
