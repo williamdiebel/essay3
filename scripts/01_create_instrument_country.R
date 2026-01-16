@@ -79,21 +79,18 @@ cor_matrix <- panel_extended_instrument[
 ]
 print(cor_matrix)
 
-# Filter to complete cases only ####
-cat("\nFiltering to complete cases...\n")
+# Merge instruments with complete cases data ####
+cat("\nMerging instruments with complete_data_2022...\n")
 
-# Create unique identifier for merging
-complete_data_2022$merge_id <- paste(complete_data_2022$gvkey,
-                                     complete_data_2022$year,
-                                     sep = "_")
-panel_extended_instrument$merge_id <- paste(panel_extended_instrument$gvkey,
-                                            panel_extended_instrument$year,
-                                            sep = "_")
+# Extract instrument variables from panel_extended_instrument
+instruments_only <- panel_extended_instrument %>%
+  select(gvkey, year,
+         peer_cdp_share, peer_cdp_share_lag,
+         peer_cdp_share_country, peer_cdp_share_country_lag)
 
-# Filter panel_extended_instrument to observations in complete_data_2022
-complete_data_2022_instrument_country <- panel_extended_instrument %>%
-  filter(merge_id %in% complete_data_2022$merge_id) %>%
-  select(-merge_id)  # Remove temporary merge ID
+# Merge with complete_data_2022 to get all analysis variables + instruments
+complete_data_2022_instrument_country <- complete_data_2022 %>%
+  left_join(instruments_only, by = c("gvkey", "year"))
 
 cat("  - Retained", nrow(complete_data_2022_instrument_country),
     "observations after filtering\n")
@@ -107,8 +104,10 @@ if (nrow(complete_data_2022_instrument_country) != nrow(complete_data_2022)) {
   cat("  ✓ Observation count matches complete_data_2022\n")
 }
 
-# Verify all instruments are present ####
-cat("\nVerifying instrument variables:\n")
+# Verify all required variables are present ####
+cat("\nVerifying required variables:\n")
+
+# Check instruments
 required_instruments <- c("peer_cdp_share",
                           "peer_cdp_share_lag",
                           "peer_cdp_share_country",
@@ -118,7 +117,19 @@ for (var in required_instruments) {
   if (var %in% names(complete_data_2022_instrument_country)) {
     cat("  ✓", var, "present\n")
   } else {
-    stop("ERROR: Missing required variable: ", var)
+    stop("ERROR: Missing required instrument: ", var)
+  }
+}
+
+# Check key analysis variables
+required_vars <- c("sbti_commitment_lead1", "cdp_sc_member",
+                   "esc_incidents_highreach", "e_disc_coalesced_zeros")
+
+for (var in required_vars) {
+  if (var %in% names(complete_data_2022_instrument_country)) {
+    cat("  ✓", var, "present\n")
+  } else {
+    stop("ERROR: Missing required analysis variable: ", var)
   }
 }
 
