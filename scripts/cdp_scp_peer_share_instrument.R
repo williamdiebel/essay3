@@ -157,10 +157,6 @@ if (n_cdp == 0 || nrow(rr_mat) == 0) {
   cdp_norm <- text2vec::normalize(cdp_mat, "l2")
   rr_norm  <- text2vec::normalize(rr_mat,  "l2")
 
-  # Ensure they are matrices (in case of single row)
-  if (!is.matrix(cdp_norm)) cdp_norm <- as.matrix(cdp_norm)
-  if (!is.matrix(rr_norm)) rr_norm <- as.matrix(rr_norm)
-
   # sparse cross-product: CDP × RR  (N_cdp × N_rr)
   sim_full <- cdp_norm %*% t(rr_norm)   # <-- keep this master copy
 
@@ -168,8 +164,17 @@ if (n_cdp == 0 || nrow(rr_mat) == 0) {
   cutoff   <- 0.65          # try 0.80, 0.85, …; change freely
 
   sim_mat  <- sim_full      # copy the full matrix
-  sim_mat@x[ sim_mat@x < cutoff ] <- 0
-  sim_mat  <- drop0(sim_mat)          # drop structural zeros
+
+  # Handle both sparse and regular matrices
+  if (inherits(sim_mat, "sparseMatrix")) {
+    sim_mat@x[ sim_mat@x < cutoff ] <- 0
+    sim_mat  <- Matrix::drop0(sim_mat)  # drop structural zeros
+  } else {
+    # For regular matrices, convert to sparse first
+    sim_mat[sim_mat < cutoff] <- 0
+    sim_mat <- Matrix::Matrix(sim_mat, sparse = TRUE)
+    sim_mat <- Matrix::drop0(sim_mat)
+  }
 
   ##### Convert to tidy pairs ----------------------------------------
   matches_long <- summary(sim_mat) |>
