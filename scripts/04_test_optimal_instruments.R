@@ -369,13 +369,14 @@ cat("RESULTS SUMMARY\\n")
 cat("================================================================================\\n\\n")
 
 # Extract key results
-coef_model1 <- summary(model_1)$coefficients["cdp_sc_member", "Estimate"]
-se_model1 <- summary(model_1)$coefficients["cdp_sc_member", "Cluster s.e."]
-p_model1 <- summary(model_1)$coefficients["cdp_sc_member", "Pr(>|t|)"]
+# Note: felm uses "varname(fit)" for instrumented variables
+coef_model1 <- summary(model_1)$coefficients["`cdp_sc_member(fit)`", "Estimate"]
+se_model1 <- summary(model_1)$coefficients["`cdp_sc_member(fit)`", "Cluster s.e."]
+p_model1 <- summary(model_1)$coefficients["`cdp_sc_member(fit)`", "Pr(>|t|)"]
 
-coef_model2 <- summary(model_2)$coefficients["cdp_sc_member", "Estimate"]
-se_model2 <- summary(model_2)$coefficients["cdp_sc_member", "Cluster s.e."]
-p_model2 <- summary(model_2)$coefficients["cdp_sc_member", "Pr(>|t|)"]
+coef_model2 <- summary(model_2)$coefficients["`cdp_sc_member(fit)`", "Estimate"]
+se_model2 <- summary(model_2)$coefficients["`cdp_sc_member(fit)`", "Cluster s.e."]
+p_model2 <- summary(model_2)$coefficients["`cdp_sc_member(fit)`", "Pr(>|t|)"]
 
 cat("COMPARISON TABLE:\\n\\n")
 cat(sprintf("%-50s %15s %15s\\n", "Specification", "Model 1", "Model 2"))
