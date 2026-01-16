@@ -308,9 +308,10 @@ cat("Re-estimating selected models with AER::ivreg for diagnostic tests...\n\n")
 cat("--- Diagnostic Tests: Model with Industry Instrument ---\n\n")
 
 # Create formula for ivreg (no fixed effects for diagnostics)
+# ivreg syntax: y ~ exog + endog | exog + instruments
 ivreg_formula_industry <- as.formula(
-  paste("sbti_commitment_lead1 ~", controls_formula,
-        "| peer_cdp_share_lag +", controls_formula)
+  paste("sbti_commitment_lead1 ~", controls_formula, "+ cdp_sc_member |",
+        controls_formula, "+ peer_cdp_share_lag")
 )
 
 model_diag_industry <- ivreg(
@@ -335,9 +336,10 @@ cat("\n")
 # Model for diagnostics: Both instruments (overidentification) ####
 cat("\n--- Diagnostic Tests: Model with Both Instruments (Overidentified) ---\n\n")
 
+# ivreg syntax: y ~ exog + endog | exog + instruments
 ivreg_formula_both <- as.formula(
-  paste("sbti_commitment_lead1 ~", controls_formula,
-        "| peer_cdp_share_lag + peer_cdp_share_country_lag +", controls_formula)
+  paste("sbti_commitment_lead1 ~", controls_formula, "+ cdp_sc_member |",
+        controls_formula, "+ peer_cdp_share_lag + peer_cdp_share_country_lag")
 )
 
 model_diag_both <- ivreg(
