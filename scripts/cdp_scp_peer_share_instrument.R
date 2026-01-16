@@ -148,43 +148,53 @@ rr_mat  <- dtm_tfidf[(n_cdp + 1):nrow(dtm_tfidf), ]
 
 
 #### cosine similarity -------------------------
-# L2-normalise each row once
-cdp_norm <- text2vec::normalize(cdp_mat, "l2")
-rr_norm  <- text2vec::normalize(rr_mat,  "l2")
+# Skip fuzzy matching if either group is empty
+if (n_cdp == 0 || nrow(rr_mat) == 0) {
+  cat("No unmatched firms to fuzzy match. Skipping fuzzy matching step.\n")
+  fuzzy_matches <- tibble()
+} else {
+  # L2-normalise each row once
+  cdp_norm <- text2vec::normalize(cdp_mat, "l2")
+  rr_norm  <- text2vec::normalize(rr_mat,  "l2")
 
-# sparse cross-product: CDP × RR  (N_cdp × N_rr)
-sim_full <- cdp_norm %*% t(rr_norm)   # <-- keep this master copy
+  # Ensure they are matrices (in case of single row)
+  if (!is.matrix(cdp_norm)) cdp_norm <- as.matrix(cdp_norm)
+  if (!is.matrix(rr_norm)) rr_norm <- as.matrix(rr_norm)
 
-##### choose a cut-off and slice a *copy* --------------------------
-cutoff   <- 0.65          # try 0.80, 0.85, …; change freely
+  # sparse cross-product: CDP × RR  (N_cdp × N_rr)
+  sim_full <- cdp_norm %*% t(rr_norm)   # <-- keep this master copy
 
-sim_mat  <- sim_full      # copy the full matrix
-sim_mat@x[ sim_mat@x < cutoff ] <- 0
-sim_mat  <- drop0(sim_mat)          # drop structural zeros
+  ##### choose a cut-off and slice a *copy* --------------------------
+  cutoff   <- 0.65          # try 0.80, 0.85, …; change freely
 
-##### Convert to tidy pairs ----------------------------------------
-matches_long <- summary(sim_mat) |>
-  as_tibble() |>
-  rename(row_id_cdp = i,      # summary() is already 1-based
-         row_id_rr  = j,
-         cosine_sim = x)
+  sim_mat  <- sim_full      # copy the full matrix
+  sim_mat@x[ sim_mat@x < cutoff ] <- 0
+  sim_mat  <- drop0(sim_mat)          # drop structural zeros
 
-##### Join back to full rows + add a match-type flag ---------------
-tfidf_matches <- matches_long %>%
-  inner_join(unmatched_cdp, by = "row_id_cdp") %>%
-  inner_join(unmatched_rr,  by = "row_id_rr", suffix = c("_cdp", "_rr")) %>%
-  select(-row_id_cdp, -row_id_rr) %>%
-  mutate(match_type     = "TFIDF",
-         match_distance = 1 - cosine_sim)   # optional: distance
-tfidf_matches %>% select(name_std_cdp, name_std_rr) %>% view()
+  ##### Convert to tidy pairs ----------------------------------------
+  matches_long <- summary(sim_mat) |>
+    as_tibble() |>
+    rename(row_id_cdp = i,      # summary() is already 1-based
+           row_id_rr  = j,
+           cosine_sim = x)
 
-###### Inspect / combine as desired ---------------------------------
-all_matches <- bind_rows(exact_matches, tfidf_matches)
-write_excel_csv(all_matches, "all_matches_target_setters.csv") # exporting for manual cleaning
-all_matches_cleaned <- read_csv("all_matches_target_setters_cleaned.csv",
-                                col_types = "ncc") #importing the cleaned dataset
-cdp_scp_members_gvkey <- merge(cdp_scp_members, all_matches_cleaned)
-saveRDS(cdp_scp_members_gvkey, "cdp_scp_members_gvkey_target_setters.rds")
+  ##### Join back to full rows + add a match-type flag ---------------
+  tfidf_matches <- matches_long %>%
+    inner_join(unmatched_cdp, by = "row_id_cdp") %>%
+    inner_join(unmatched_rr,  by = "row_id_rr", suffix = c("_cdp", "_rr")) %>%
+    select(-row_id_cdp, -row_id_rr) %>%
+    mutate(match_type     = "TFIDF",
+           match_distance = 1 - cosine_sim)   # optional: distance
+  tfidf_matches %>% select(name_std_cdp, name_std_rr) %>% view()
+
+  ###### Inspect / combine as desired ---------------------------------
+  all_matches <- bind_rows(exact_matches, tfidf_matches)
+  write_excel_csv(all_matches, "all_matches_target_setters.csv") # exporting for manual cleaning
+  all_matches_cleaned <- read_csv("all_matches_target_setters_cleaned.csv",
+                                  col_types = "ncc") #importing the cleaned dataset
+  cdp_scp_members_gvkey <- merge(cdp_scp_members, all_matches_cleaned)
+  saveRDS(cdp_scp_members_gvkey, "cdp_scp_members_gvkey_target_setters.rds")
+}  # End of fuzzy matching if/else block
   # inspecting target setters that did not match
 panel_merging_table_cleaned %>% filter(!
                                          (panel_merging_table_cleaned$gvkey %in% 
