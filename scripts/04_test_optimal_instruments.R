@@ -283,61 +283,55 @@ cat("\\n========================================================================
 cat("PART 4: DIAGNOSTIC TESTS\\n")
 cat("================================================================================\\n\\n")
 
-# Prepare data for ivreg diagnostics ####
-# Note: ivreg doesn't support factor variables, so create dummies manually
+# Alternative approach: Demean data to absorb fixed effects ####
+# This avoids the formula length issue with creating all dummy variables
+cat("Preparing data for diagnostic tests (demeaning to absorb fixed effects)...\\n\\n")
 
-# Create country fixed effects (use most common country as reference)
-country_table <- table(data$headquarter_country)
-ref_country <- names(country_table)[which.max(country_table)]
-cat("Reference country for FE:", ref_country, "\\n\\n")
+# Variables to demean
+vars_to_demean <- c("sbti_commitment_lead1", "cdp_sc_member",
+                    "esc_incidents_highreach", "e_disc_coalesced_zeros", "e_disc_missing",
+                    "scope1_zeros", "scope1_missing",
+                    "roa_oibdp_w1_at_w1", "at_usd_winsorized_1_log", "tll_lt_w1_at_w1",
+                    "peer_cdp_share_country_lag", "e_disc_lag2", "industry_incidents_excl_lag")
 
-data_with_dummies <- data %>%
-  mutate(
-    country_fe = as.factor(headquarter_country),
-    year_fe = as.factor(year)
-  )
+# Convert to data.table for efficient group operations
+setDT(data)
 
-# Convert to model matrix for fixed effects
-country_dummies <- model.matrix(~ country_fe - 1, data = data_with_dummies)[, -1]
-year_dummies <- model.matrix(~ year_fe - 1, data = data_with_dummies)[, -1]
+# Demean by country-year groups
+data_demeaned <- copy(data)
+for (var in vars_to_demean) {
+  # Calculate country-year means
+  data_demeaned[, paste0(var, "_mean_cy") := mean(get(var), na.rm = TRUE),
+                by = .(headquarter_country, year)]
+  # Demean
+  data_demeaned[, paste0(var, "_dm") := get(var) - get(paste0(var, "_mean_cy"))]
+}
 
-# Combine with original data
-data_for_ivreg <- cbind(data, country_dummies, year_dummies)
+# Convert back to data.frame for ivreg
+data_demeaned_df <- as.data.frame(data_demeaned)
 
-# Get column names for fixed effects
-country_fe_names <- colnames(country_dummies)
-year_fe_names <- colnames(year_dummies)
+# Build ivreg formula with demeaned variables (no FE needed since absorbed)
+cat("Running ivreg with demeaned data...\\n\\n")
 
-# Build formula components
-controls_vars <- c("esc_incidents_highreach", "e_disc_coalesced_zeros", "e_disc_missing",
-                   "log(scope1_zeros + 1)", "scope1_missing", "roa_oibdp_w1_at_w1",
-                   "at_usd_winsorized_1_log", "tll_lt_w1_at_w1")
-
-# Diagnostic test for Model 2 (over-identified) ####
-cat("Diagnostic Tests for Model 2 (three instruments):\\n\\n")
-
-# Build ivreg formula
 ivreg_formula <- as.formula(
-  paste("sbti_commitment_lead1 ~",
-        paste(controls_vars, collapse = " + "),
-        "+ cdp_sc_member +",
-        paste(country_fe_names, collapse = " + "),
-        "+",
-        paste(year_fe_names, collapse = " + "),
-        "|",
-        paste(controls_vars, collapse = " + "),
-        "+",
-        paste(country_fe_names, collapse = " + "),
-        "+",
-        paste(year_fe_names, collapse = " + "),
-        "+ peer_cdp_share_country_lag + e_disc_lag2 + industry_incidents_excl_lag")
+  paste("sbti_commitment_lead1_dm ~",
+        "esc_incidents_highreach_dm + e_disc_coalesced_zeros_dm + e_disc_missing_dm +",
+        "log(scope1_zeros_dm + 1) + scope1_missing_dm +",
+        "roa_oibdp_w1_at_w1_dm + at_usd_winsorized_1_log_dm + tll_lt_w1_at_w1_dm +",
+        "cdp_sc_member_dm |",
+        "esc_incidents_highreach_dm + e_disc_coalesced_zeros_dm + e_disc_missing_dm +",
+        "log(scope1_zeros_dm + 1) + scope1_missing_dm +",
+        "roa_oibdp_w1_at_w1_dm + at_usd_winsorized_1_log_dm + tll_lt_w1_at_w1_dm +",
+        "peer_cdp_share_country_lag_dm + e_disc_lag2_dm + industry_incidents_excl_lag_dm")
 )
 
 # Run ivreg
-model_diag <- ivreg(ivreg_formula, data = data_for_ivreg)
+model_diag <- ivreg(ivreg_formula, data = data_demeaned_df)
 
 # Get diagnostics
 summary_diag <- summary(model_diag, diagnostics = TRUE)
+
+cat("Diagnostic Tests for Model 2 (three instruments):\\n\\n")
 
 cat("WEAK INSTRUMENTS TEST:\\n")
 weak_test <- summary_diag$diagnostics["Weak instruments", , drop = FALSE]
