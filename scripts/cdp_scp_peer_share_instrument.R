@@ -157,8 +157,18 @@ if (n_cdp == 0 || nrow(rr_mat) == 0) {
   cdp_norm <- text2vec::normalize(cdp_mat, "l2")
   rr_norm  <- text2vec::normalize(rr_mat,  "l2")
 
+  # Ensure proper matrix/sparse matrix format for transpose
+  # Convert to Matrix class if needed
+  if (!inherits(cdp_norm, c("Matrix", "sparseMatrix", "dgCMatrix"))) {
+    cdp_norm <- Matrix::Matrix(cdp_norm, sparse = TRUE)
+  }
+  if (!inherits(rr_norm, c("Matrix", "sparseMatrix", "dgCMatrix"))) {
+    rr_norm <- Matrix::Matrix(rr_norm, sparse = TRUE)
+  }
+
   # sparse cross-product: CDP × RR  (N_cdp × N_rr)
-  sim_full <- cdp_norm %*% t(rr_norm)   # <-- keep this master copy
+  # Use Matrix::t() for proper transpose of sparse matrices
+  sim_full <- cdp_norm %*% Matrix::t(rr_norm)   # <-- keep this master copy
 
   ##### choose a cut-off and slice a *copy* --------------------------
   cutoff   <- 0.65          # try 0.80, 0.85, …; change freely
