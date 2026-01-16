@@ -29,15 +29,11 @@ library(sandwich)    # For robust standard errors
 library(lmtest)      # For hypothesis tests
 
 # Set working directory to cleaned_data folder ####
-# Get script directory and navigate to cleaned_data
-script_dir <- dirname(sys.frame(1)$ofile)
-if (length(script_dir) == 0 || script_dir == "") {
-  # Fallback: assume we're running from project root
-  setwd("cleaned_data")
-} else {
-  # Navigate from scripts/ to cleaned_data/
-  setwd(file.path(dirname(script_dir), "cleaned_data"))
+# Note: Run this script from the project root directory (essay3/)
+if (!dir.exists("cleaned_data")) {
+  stop("Error: cleaned_data directory not found. Please run this script from the project root.")
 }
+setwd("cleaned_data")
 
 # Load data ####
 cat("Loading complete_data_2022_instrument_country.rds...\n")
