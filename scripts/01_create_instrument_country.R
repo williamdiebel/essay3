@@ -63,21 +63,120 @@ panel_extended_instrument[, peer_cdp_share_country_lag :=
 panel_extended_instrument[is.na(peer_cdp_share_country_lag),
                           peer_cdp_share_country_lag := 0]
 
+# Create cross-domain instruments for robustness ####
+cat("\nCreating cross-domain instruments (industry excl. own country, country excl. own industry)...\n")
+
+# (c) Industry peer share EXCLUDING own country
+# For firm i in industry j and country c, calculate peer share in industry j
+# across all countries EXCEPT country c
+panel_extended_instrument[, peer_cdp_share_industry_exclcountry :=
+  {
+    # For each industry-year, sum CDP members and firms excluding own country
+    industry_year_totals <- .SD[, .(
+      total_cdp = sum(cdp_sc_member, na.rm = TRUE),
+      total_firms = .N
+    ), by = .(FourDigitName, year)]
+
+    # For each country-industry-year, sum CDP members and firms in own country
+    country_industry_year_totals <- .SD[, .(
+      country_cdp = sum(cdp_sc_member, na.rm = TRUE),
+      country_firms = .N
+    ), by = .(headquarter_country, FourDigitName, year)]
+
+    # Merge to get both totals
+    merged <- merge(.SD, industry_year_totals,
+                   by = c("FourDigitName", "year"), all.x = TRUE)
+    merged <- merge(merged, country_industry_year_totals,
+                   by = c("headquarter_country", "FourDigitName", "year"), all.x = TRUE)
+
+    # Calculate: (industry total - country total - self) / (industry firms - country firms - 1)
+    # Exclude self from numerator and denominator
+    other_country_cdp <- merged$total_cdp - merged$country_cdp - merged$cdp_sc_member
+    other_country_firms <- merged$total_firms - merged$country_firms - 1
+
+    # Return peer share (handle edge cases)
+    ifelse(other_country_firms > 0,
+           other_country_cdp / other_country_firms,
+           NA_real_)
+  }]
+
+# (d) Country peer share EXCLUDING own industry
+# For firm i in country c and industry j, calculate peer share in country c
+# across all industries EXCEPT industry j
+panel_extended_instrument[, peer_cdp_share_country_excludindustry :=
+  {
+    # For each country-year, sum CDP members and firms excluding own industry
+    country_year_totals <- .SD[, .(
+      total_cdp = sum(cdp_sc_member, na.rm = TRUE),
+      total_firms = .N
+    ), by = .(headquarter_country, year)]
+
+    # For each country-industry-year, sum CDP members and firms in own industry
+    country_industry_year_totals <- .SD[, .(
+      industry_cdp = sum(cdp_sc_member, na.rm = TRUE),
+      industry_firms = .N
+    ), by = .(headquarter_country, FourDigitName, year)]
+
+    # Merge to get both totals
+    merged <- merge(.SD, country_year_totals,
+                   by = c("headquarter_country", "year"), all.x = TRUE)
+    merged <- merge(merged, country_industry_year_totals,
+                   by = c("headquarter_country", "FourDigitName", "year"), all.x = TRUE)
+
+    # Calculate: (country total - industry total - self) / (country firms - industry firms - 1)
+    other_industry_cdp <- merged$total_cdp - merged$industry_cdp - merged$cdp_sc_member
+    other_industry_firms <- merged$total_firms - merged$industry_firms - 1
+
+    # Return peer share (handle edge cases)
+    ifelse(other_industry_firms > 0,
+           other_industry_cdp / other_industry_firms,
+           NA_real_)
+  }]
+
+# (e) Lag the cross-domain instruments
+panel_extended_instrument[, peer_cdp_share_industry_exclcountry_lag :=
+                            shift(peer_cdp_share_industry_exclcountry, n = 1, type = "lag"),
+                          by = gvkey]
+
+panel_extended_instrument[, peer_cdp_share_country_excludindustry_lag :=
+                            shift(peer_cdp_share_country_excludindustry, n = 1, type = "lag"),
+                          by = gvkey]
+
+# Replace NAs with 0 for lagged cross-domain instruments
+panel_extended_instrument[is.na(peer_cdp_share_industry_exclcountry_lag),
+                          peer_cdp_share_industry_exclcountry_lag := 0]
+panel_extended_instrument[is.na(peer_cdp_share_country_excludindustry_lag),
+                          peer_cdp_share_country_excludindustry_lag := 0]
+
 # Sanity checks ####
-cat("\nSummary statistics for new instruments:\n")
+cat("\nSummary statistics for all instruments:\n")
 cat("\npeer_cdp_share_country (current year):\n")
 print(summary(panel_extended_instrument$peer_cdp_share_country))
 
 cat("\npeer_cdp_share_country_lag (one-year lag):\n")
 print(summary(panel_extended_instrument$peer_cdp_share_country_lag))
 
-# Check correlation between industry and country instruments
-cat("\nCorrelation between industry and country instruments:\n")
+cat("\npeer_cdp_share_industry_exclcountry_lag (industry excl. own country):\n")
+print(summary(panel_extended_instrument$peer_cdp_share_industry_exclcountry_lag))
+
+cat("\npeer_cdp_share_country_excludindustry_lag (country excl. own industry):\n")
+print(summary(panel_extended_instrument$peer_cdp_share_country_excludindustry_lag))
+
+# Check correlations between all instruments
+cat("\nCorrelation matrix for all instruments:\n")
 cor_matrix <- panel_extended_instrument[
-  !is.na(peer_cdp_share_lag) & !is.na(peer_cdp_share_country_lag),
-  cor(cbind(peer_cdp_share_lag, peer_cdp_share_country_lag))
+  !is.na(peer_cdp_share_lag) &
+  !is.na(peer_cdp_share_country_lag) &
+  !is.na(peer_cdp_share_industry_exclcountry_lag) &
+  !is.na(peer_cdp_share_country_excludindustry_lag),
+  cor(cbind(peer_cdp_share_lag,
+            peer_cdp_share_country_lag,
+            peer_cdp_share_industry_exclcountry_lag,
+            peer_cdp_share_country_excludindustry_lag))
 ]
-print(cor_matrix)
+colnames(cor_matrix) <- c("Industry", "Country", "Ind_ExclCtry", "Ctry_ExclInd")
+rownames(cor_matrix) <- c("Industry", "Country", "Ind_ExclCtry", "Ctry_ExclInd")
+print(round(cor_matrix, 3))
 
 # Merge instruments with complete cases data ####
 cat("\nMerging instruments with complete_data_2022...\n")
@@ -86,7 +185,9 @@ cat("\nMerging instruments with complete_data_2022...\n")
 instruments_only <- panel_extended_instrument %>%
   select(gvkey, year,
          peer_cdp_share, peer_cdp_share_lag,
-         peer_cdp_share_country, peer_cdp_share_country_lag)
+         peer_cdp_share_country, peer_cdp_share_country_lag,
+         peer_cdp_share_industry_exclcountry, peer_cdp_share_industry_exclcountry_lag,
+         peer_cdp_share_country_excludindustry, peer_cdp_share_country_excludindustry_lag)
 
 # Merge with complete_data_2022 to get all analysis variables + instruments
 complete_data_2022_instrument_country <- complete_data_2022 %>%
@@ -111,7 +212,11 @@ cat("\nVerifying required variables:\n")
 required_instruments <- c("peer_cdp_share",
                           "peer_cdp_share_lag",
                           "peer_cdp_share_country",
-                          "peer_cdp_share_country_lag")
+                          "peer_cdp_share_country_lag",
+                          "peer_cdp_share_industry_exclcountry",
+                          "peer_cdp_share_industry_exclcountry_lag",
+                          "peer_cdp_share_country_excludindustry",
+                          "peer_cdp_share_country_excludindustry_lag")
 
 for (var in required_instruments) {
   if (var %in% names(complete_data_2022_instrument_country)) {

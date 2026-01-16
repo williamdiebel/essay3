@@ -138,6 +138,35 @@ cat("\n*** Joint F-test for both instruments ***\n")
 print(wald_result)
 cat("\n")
 
+# First-stage: Cross-domain instruments ####
+cat("\n--- First-Stage 4: Cross-domain instruments (industry excl. country + country excl. industry) ---\n\n")
+
+first_stage_crossdomain <- feols(
+  as.formula(paste("cdp_sc_member ~ peer_cdp_share_industry_exclcountry_lag + peer_cdp_share_country_excludindustry_lag +",
+                   controls_formula, "| headquarter_country + year")),
+  data = data,
+  cluster = ~ gvkey
+)
+
+summary(first_stage_crossdomain)
+
+# Joint F-test for cross-domain instruments
+wald_result_crossdomain <- wald(first_stage_crossdomain,
+                                vcov = "cluster",
+                                keep = c("peer_cdp_share_industry_exclcountry_lag",
+                                        "peer_cdp_share_country_excludindustry_lag"))
+cat("\n*** Joint F-test for cross-domain instruments ***\n")
+print(wald_result_crossdomain)
+cat("\n")
+
+cat("*** Interpretation ***\n")
+cat("These instruments are designed to address instrument validity concerns:\n")
+cat("- By construction, they should be uncorrelated (different domains)\n")
+cat("- They remove common shocks that could violate exclusion restriction\n")
+cat("- If joint F > 10, they provide strong identification\n")
+cat("- Sargan test should pass, unlike original industry + country instruments\n")
+cat("\n")
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # PART 2: SECOND-STAGE 2SLS REGRESSIONS ####
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -187,6 +216,26 @@ model_3 <- felm(
 
 summary(model_3)
 cat("\n")
+
+# Model 3a: Cross-domain instruments (industry excl. country + country excl. industry) ####
+cat("\n--- Model 3a: Cross-domain instruments (Ind excl. Country + Country excl. Ind) ---\n\n")
+
+model_3a <- felm(
+  as.formula(paste("sbti_commitment_lead1 ~", controls_formula,
+                   "| headquarter_country + year",
+                   "| (cdp_sc_member ~ peer_cdp_share_industry_exclcountry_lag + peer_cdp_share_country_excludindustry_lag)",
+                   "| gvkey")),
+  data = data
+)
+
+summary(model_3a)
+cat("\n")
+
+cat("*** Cross-domain instrument validity check ***\n")
+cat("These instruments should pass Sargan test as they are uncorrelated by construction\n")
+cat("- Industry excl. own country: captures diffusion within industry, excluding home country\n")
+cat("- Country excl. own industry: captures diffusion within country, excluding own industry\n")
+cat("This design removes common country×industry shocks that could violate exclusion restriction\n\n")
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # PART 3: ALTERNATIVE SPECIFICATIONS - INCIDENT MEASURES ####
@@ -360,6 +409,40 @@ cat("(Fail to reject null if p > 0.05 → instruments valid)\n")
 
 cat("\n*** Wu-Hausman Test for Endogeneity ***\n")
 print(summary_diag_both$diagnostics["Wu-Hausman", , drop = FALSE])
+cat("(Null hypothesis: cdp_sc_member is exogenous)\n")
+cat("(Reject null if p < 0.05 → endogeneity present)\n")
+
+cat("\n")
+
+# Model for diagnostics: Cross-domain instruments ####
+cat("\n--- Diagnostic Tests: Cross-Domain Instruments (Industry excl. Country + Country excl. Ind) ---\n\n")
+
+# ivreg syntax: y ~ exog + endog | exog + instruments
+ivreg_formula_crossdomain <- as.formula(
+  paste("sbti_commitment_lead1 ~", controls_formula, "+ cdp_sc_member |",
+        controls_formula, "+ peer_cdp_share_industry_exclcountry_lag + peer_cdp_share_country_excludindustry_lag")
+)
+
+model_diag_crossdomain <- ivreg(
+  ivreg_formula_crossdomain,
+  data = data
+)
+
+summary(model_diag_crossdomain, diagnostics = TRUE)
+
+cat("\n*** Weak Instruments Test (First-stage F) ***\n")
+summary_diag_crossdomain <- summary(model_diag_crossdomain, diagnostics = TRUE)
+print(summary_diag_crossdomain$diagnostics["Weak instruments", , drop = FALSE])
+
+cat("\n*** Sargan-Hansen J-Test for Overidentification ***\n")
+print(summary_diag_crossdomain$diagnostics["Sargan", , drop = FALSE])
+cat("(Null hypothesis: instruments are valid)\n")
+cat("(Fail to reject null if p > 0.05 → instruments valid)\n")
+cat("\n*** CRITICAL: This test should PASS (p > 0.05) for cross-domain instruments ***\n")
+cat("*** Unlike original instruments, these are uncorrelated by construction ***\n")
+
+cat("\n*** Wu-Hausman Test for Endogeneity ***\n")
+print(summary_diag_crossdomain$diagnostics["Wu-Hausman", , drop = FALSE])
 cat("(Null hypothesis: cdp_sc_member is exogenous)\n")
 cat("(Reject null if p < 0.05 → endogeneity present)\n")
 
