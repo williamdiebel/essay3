@@ -205,3 +205,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# R data files
+*.rds
+*.RData
+*.Rhistory
+
+# macOS
+.DS_Store
+manuscripts/docx_extracted/

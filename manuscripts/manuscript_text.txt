@@ -1,0 +1,2423 @@
+ENVIRONMENTAL SUPPLY CHAIN ORIENTATION 
+
+A
+
+ND SCIENCE-BASED TARGETS
+
+William Diebel*
+
+Darla Moore School of Business, University of South Carolina
+
+Robert D. Klassen
+
+Ivey Business School, Western University
+
+November
+
+ 2025
+
+Abstract
+
+With growing urgency to engage corporations in climate change mitigation, there is a rising need to understand what factors enable firms to set meaningful carbon reduction commitments. Formed in 2015, the Science-Based Targets initiative (SBTi) works to support and verify corporate carbon reduction commitments that align with 1.5
+
+C global warming limitations, as laid out in the Paris Agreement. Despite the existential risks associated with climate change, there is notable heterogeneity in the preparedness of firms to commit to necessary mitigation efforts. To better understand what 
+
+factors
+
+ enable firms to make SBTi commitments, we draw on the attention-based view of the firm and the sustainable supply chain literature. We propose that higher levels of firms’ awareness of their environmental supply chain impacts and risks – what we refer to as an environmental supply chain orientation – provides important knowledge and motivations for firms to make SBTi commitments. To test our hypotheses, we combine panel data from SBTi, CDP, 
+
+RepRisk
+
+, Bloomberg, and 
+
+Compustat
+
+, finding strong support for the relationship between environmental supply chain orientation and SBTi commitments. In doing so, we extend theory to the context of SBTi commitments and provide actionable insights to encourage more firms to meaningfully engage in climate change mitigation.
+
+Keywords: 
+
+Research with secondary data; supply networks; environmental management
+
+I
+
+ntroduction
+
+In the face of accelerating climate change, the urgency to engage corporations in substantive decarbonization efforts is more pressing than ever. This imperative 
+
+coincides
+
+with
+
+ the establishment of the Science-Based Targets initiative 
+
+(SBTi) 
+
+in 2015, which seeks to facilitate and validate corporate carbon reduction commitments
+
+ (SBTi commitments)
+
+ in alignment with the 1.5°C global warming threshold set forth in the Paris Agreement.
+
+Despite the clear and present dangers posed by climate change, there is a
+
+n apparent
+
+ divergence in the readiness and willingness of firms to undertake the necessary 
+
+carbon reduction 
+
+commitments to mitigate these effects. This variability is particularly evident in the firm-level heterogeneity observed in SBTi commitments
+
+(Bolton &amp; 
+
+Kacperczyk
+
+, 2023)
+
+, underscoring a critical gap in our understanding of the enablers of such commitments.
+
+Our
+
+ study is driven by the need to 
+
+identify
+
+effective interventions that lead to
+
+ SBTi
+
+ commitments
+
+. 
+
+While evidence from other corporate environmental engagements such as carbon reporting 
+
+(Jira &amp; Toffel, 2013)
+
+ and environmental management systems adoptions 
+
+(Corbett &amp; Kirsch, 2001)
+
+ provide useful insights for understanding firms’ preparedness to engage in climate change mitigation, SBTi commitments differ in several notable ways. First, SBTi target setting is performance-
+
+based
+
+, rather than process-based in nature. Second, the influence of external third-party actors in the target setting and validation process is unprecedented. Third, the time horizons associated with commitments is beyond the temporal boundaries of many other corporate environmental initiatives or practices. Altogether, these differences suggest that the complexity and difficulty of achieving such targets is exceptionally high and novel. Therefore, research is urgently needed to understand the unique phenomenon of SBTi target setting. Our work aims to address this need for knowledge
+
+. Our findings provide actionable insights for managers and external stakeholders aiming to promote robust corporate climate change mitigation
+
+.
+
+Our inquiry 
+
+is inspired by
+
+ the
+
+ complex
+
+ interconnected nature of buyer-supplier networks, which poses significant challenges
+
+(Kim &amp; Davis, 2016)
+
+ as well as potential opportunities 
+
+(Blanco, 2021, 2022)
+
+ for
+
+ corporate decarbonization efforts. 
+
+E
+
+merging empirical evidence suggests that 
+
+supply chain operations play a pivotal role in 
+
+enhancing
+
+ firms
+
+’
+
+awareness of
+
+ climate change risks 
+
+(Blanco, 2021; Diebel et al., 2024b; Wu &amp; Jia, 2018)
+
+. Building on this perspective, we ask
+
+: 
+
+Are firms more inclined to make SBTi commitments when they exhibit a 
+
+greater
+
+ awareness 
+
+of their
+
+ environmental supply chain 
+
+impacts and risks
+
+?
+
+To address this question, 
+
+we
+
+ build upon 
+
+an integrated
+
+ attention-based 
+
+framework 
+
+(Ocasio, 1997, 2011)
+
+ and prior research at the nexus of corporate sustainability 
+
+(Blanco, 2021)
+
+ and supply chain orientation 
+
+(Esper et al., 2010)
+
+. Our synthesis of the literature centers around the 
+
+development of a construct that we refer to as an 
+
+environmental supply chain orientation
+
+, an organizational state defined by a firm’s
+
+awareness of its 
+
+environmental supply chain 
+
+impacts and 
+
+risks
+
+.
+
+ Specifically, we hypothesize that an environmental supply chain orientation – which may be adopted 
+
+proactively 
+
+or 
+
+reactively
+
+ – provides a firm with important information about its exposure to climate change risks, amplifying the firm’s motivations to pursue an SBTi commitment.
+
+To test our hypotheses, we
+
+ assembl
+
+e
+
+a unique
+
+ panel data
+
+set
+
+ from various sources, including SBTi, CDP, 
+
+Reprisk
+
+, 
+
+Bloomberg, 
+
+and 
+
+Compustat
+
+. Specifically, our analyses include the population of 
+
+Compustat
+
+ and 
+
+RepRisk
+
+ firms from 2007 to 2020, comprising 171,280 firm-year observations, to examine variance in firm-year SBTi commitments.
+
+We find strong support for the effect of proactively and reactively adopted environmental supply chain orientations on SBTi commitments.
+
+Our findings contribute significantly to both scholarly and practical domains. From a theoretical perspective, we extend the application of the attention-based view to the context of SBTi commitments, offering a novel understanding of how firms' environmental supply chain orientations can serve as a crucial determinant of their commitment to science-based carbon reduction targets. Practically, our research provides actionable insights for encouraging a broader swath of firms to engage meaningfully in climate change mitigation efforts, highlighting the instrumental role of environmental supply chain management in facilitating this process.
+
+Literature Review and Hypotheses
+
+S
+
+cience-Based Targets
+
+The Science-Based Targets initiative (SBTi) is a coalition of non-profit and non-governmental organizations
+
+,
+
+ dedicated to enabling firms to set and pursue carbon reduction commitments that are in line with the Paris Agreement. SBTi works with firms to set carbon reduction targets in a multi-step process
+
+that brings together external experts to independently assess and validate firms’ pathways for achieving such emissions reductions. The specific steps for committing to (and working towards) an SBTi target are summarized in Figure 1. SBTi commitments 
+
+are considered to be
+
+ ambitious since they are typically higher in magnitude than other voluntary corporate emissions reduction targets 
+
+(Freiberg et al., 2021)
+
+ and do not recognize carbon offsets as a means to achieve emissions reductions 
+
+(SBTi, 2022)
+
+.
+
+Though research on SBTi commitments is nascent, such commitments share conceptual overlap with other types of more well-studied environmental management practices. We first identify and discuss insights drawn from research on two prominent environmental practices – emissions disclosure and environmental management systems – before describing how our research on SBTi commitments extends and departs from prior literature.
+
+Source: 
+
+https://sciencebasedtargets.org/step-by-step-process
+
+FIGURE 1
+
+. 
+
+SBTi Target Setting Process
+
+Emissions disclosure encompasses firms’ public reporting of their emissions, which may include toxic releases 
+
+(Hora &amp; Subramanian, 2019)
+
+ and carbon emissions 
+
+(Hahn et al., 2015)
+
+. To date, carbon emissions disclosure has largely been voluntary, motivating research that has shed light on the drivers of such disclosure. Disclosure has been theoretically and empirically linked to factors at various levels of analysis. At the firm-level, capabilities around information gathering and strategic considerations to appease stakeholder pressures may affect firms’ level of disclosure 
+
+(Bellamy et al., 2020; Kim &amp; Davis, 2016; Marshall et al., 2016; Villena &amp; 
+
+Dhanorkar
+
+, 2020)
+
+. Heterogeneity at both industry and regional levels has also been shown to affect firms’ disclosure due to differences in stakeholder pressures for firms to account for and disclose their environmental impacts across industry and regional strata 
+
+(Jira &amp; Toffel, 2013)
+
+. In addition, a regulatory patchwork around mandatory forms of sustainability-related disclosures continues to grow
+
+,
+
+ though the degree of mandatory disclosure around carbon emissions remains varied and limited in scale. At the same time, the potential for widespread mandatory forms of disclosure to emerge creates perceived regulatory risks that may promote voluntary forms of emissions disclosure 
+
+(Glazer, 2021)
+
+. Finally, supply chain structures have been linked to emissions disclosures, which contributes growing evidence to suggest that supply chains represent institutional fields able to create multilayered motivations for disclosure, unique from those emerging at other levels of analysis 
+
+(Diebel et al., 2024b; 
+
+Gualandris
+
+ et al., 2021; Wu &amp; Jia, 2018)
+
+. 
+
+Environmental management systems (EMS) are structured frameworks that firms may adopt to manage their environmental performance. Since the late 1990s, the ISO 14001 standard emerged as a prominent and widely adopted environmental management system, which focuses on business processes for identifying and managing environmental impacts. 
+
+Similar to
+
+ research on emissions disclosure, strategic motivations and institutional pressures have been linked to ISO 14001 certifications 
+
+(Corbett &amp; Kirsch, 2001)
+
+. In addition, anecdotal evidence suggests that supply 
+
+chain structures play a role as corporate customers may coerce or show preference to suppliers that are ISO 14001 certified 
+
+(Bansal &amp; Bogner, 2002)
+
+.
+
+In summary, research on emissions disclosure and environmental management systems provides an entry point for understanding what factors may contribute to firms’ SBTi commitments. Emissions disclosure and EMS adoption share similarities with SBTi commitments as all three can be viewed as voluntary practices or policies that signal firms’ commitment to addressing their environmental impacts – therefore, firms may consider SBTi commitments as a component of their strategy and are likely to also face institutional pressures to align with the expectations of various stakeholders.
+
+At the same time, SBTi commitments have several notable differences. First, SBTi commitments are performance-based, inherently requiring significant environmental performance improvements over time. Differently, emissions disclosure regimes and EMS adoptions do not necessitate that firms set performance-based targets and provide no guarantee that firms’ environmental performance will improve 
+
+as a result of
+
+ engagement. Instead, emissions disclosure and EMS systems are more process-oriented initiatives, designed to provide firms with enhanced awareness of their environmental impacts and greater accountability to manage such impacts. 
+
+Second, because SBTi commitments are externally set and validated, the magnitude of a firm’s carbon reduction commitment is strongly influenced by factors outside of its own control. Specifically, targets are based on disaggregated levels of emissions reductions required to meet the goals of the Paris Agreement. Furthermore, once firms commit to setting a target, their target must be validated, which includes collaboration with SBTi to determine a viable pathway for achieving their target 
+
+(Klassen &amp; Lynch, 2023)
+
+. While firms that engage with emissions disclosure and EMS can follow externally determined frameworks of reporting and certification, their performance and pathway to performance improvement is not dictated and validated by a third-party. In contrast, the external nature of SBTi target setting and pathway validation is likely to make commitments more onerous to achieve and therefore represent a more significant commitment compared to firms’ engagements in emissions disclosure regimes and EMS adoptions. 
+
+Third, the temporal nature of SBTi commitments is necessarily longer than commitments to emissions disclosures or EMS adoptions. Near-term targets made through SBTi may include performance-based milestones that are as much as 15 years into the future (e.g., a firm that commits in 2015 may have a near-term target for the year 2030). Long-term targets include performance-based milestones as late as the year 2050. This extended temporal horizon essentially commits organizational attention and resources for several decades, which neither emissions disclosure regimes nor EMS adoptions require. When a firm chooses to participate in 
+
+emissions disclosure or EMS adoption, it is not simultaneously pledging an obligation into the future. The long temporal associated with SBTi commitments are another reason why they are likely to be more onerous and significant compared to commitments to firms’ engagements in emissions disclosure regimes and EMS adoptions. 
+
+Our research therefore builds on and extends prior research on firms’ environmental commitments to the context of SBTi – a unique setting characterized by its performance-based nature, external determination and validation of target-levels, and unusually long temporal horizons. Because of these key differences, there is a need to understand what factors contribute to firms’ SBTi commitments. Our research addresses this need for knowledge.
+
+Attention-Based View
+
+To understand firms’ SBTi commitments, we draw on the attention-based view (ABV) of the firm 
+
+(Ocasio, 1997)
+
+. The ABV establishes theoretical links between organizations’ attention and their subsequent behavior and decision making. Viewed through the ABV, a firm’s behavior and decisions reflect its underlying attentional structure. Therefore, a firm’s strategy and capabilities, among other behavioral outcomes, reflect the firm’s distributed pattern of attention. For this reason, the ABV has been used extensively for understanding how and why firms commit to 
+
+particular strategies
+
+, initiatives, and practices – and is therefore suitable for understanding the nature of firms’ SBTi commitments. 
+
+In reviewing the literature on organizational attention, Ocasio 
+
+(Ocasio, 2011)
+
+ identifies and describes three “varieties” of organizational attention: perspective (structure); engagement (process); and selection (outcome). All three contribute to an integrated attentional framework that we leverage to understand potential linkages between a firm’s awareness of its environmental supply chain impacts and risks, i.e., an environmental supply chain orientation, and subsequent SBTi commitments. 
+
+Attentional perspective refers to what Ocasio describes as a top-down structure, whereby an organization deliberately channels its attention to develop an awareness of stimuli and responses that are related to its underlying values and objectives. Attentional perspective, therefore, is portrayed as akin to the firm’s strategy, as the firm inherently works to distribute its resources and capabilities based on its attentional perspective.
+
+Attentional engagement refers to the combination of top-down and bottom-up processes that relate to the organization’s ongoing allocation of attentional resources. In the case of attentional engagement, top-down refers to how the organization’s attention, as on on-going process, is influenced by the organization’s overarching attentional perspective, naturally engaging the organization with a given set of stimuli and responses over time. This process can also be influenced by bottom-up processes, i.e., unexpected external cues or signals that the 
+
+organization allocates attention to and incorporates into its ongoing processing of information, ultimately allowing the organization to sense and adapt to a dynamic environment.
+
+Attentional selection refers to the outcome of attentional processes. Attentional selection is conceptualized as an emergent property of an organization’s attention, which is ultimately a function of the top-down and bottom-up processes that comprise attentional perspective and attentional engagement. For example, viewed through the lens of Ocasio’s synthesis (2011), when an organization chooses to make an SBTi commitment (outcome), this choice is demonstrative of the organization’s attentional selection. It may be influenced by the organization’s core strategy, which may, for example, include one or more facets of climate change mitigation (top-down structure or process) or unanticipated external stimuli that shift the organization’s attentional engagement onto climate change issues, such as media scrutiny (bottom-up process).
+
+Sustainable Supply Chain Management
+
+Firms are increasingly exposed to environmental risks – such as those posed by climate change – through their extended supply chains. The estimated magnitude of focal firms’ climate impact across their supply chains offers a striking illustration. The CDP (formerly the Carbon Disclosure Project) estimated that supply chain emissions were 11.4 times greater than firms’ own operational emissions 
+
+(CDP, 2023)
+
+,
+
+ accounting for 92% of corporate carbon emissions, although this varies by sector. 
+
+(Bové &amp; Swartz, 2016)
+
+ report a similar figure for the consumer products sector, estimating that over 80% of estimated greenhouse gas emissions and 90% of the sector’s broader corporate impacts to land, soil, and air were attributable to other firms across the supply chain.
+
+Firms are also being held to account. For example, the media and other stakeholders often blames consumer firms for environmental impacts that occur in their supply chains 
+
+(
+
+Prasso
+
+ et al., 2023)
+
+. This phenomenon has been referred to as “chain liability” and may threaten to undermine a firm’s legitimacy and social license to operate 
+
+(Hartmann &amp; Moeller, 2014)
+
+. 
+
+The above research suggests that firms can gain important information about their exposure to environmental impacts and risks 
+
+through
+
+ their extended supply chain operations. For example, supply chain transparency functions as a top-down strategic tool that helps firms gain a broader understanding of environmental impacts and risks embedded in their supply chains, informing firms’ subsequent responses to climate change mitigation 
+
+(Galvin, 2017; Jira &amp; Toffel, 2013; Sodhi &amp; Tang, 2019; Villena &amp; 
+
+Dhanorkar
+
+, 2020)
+
+. Differently, firms can learn about their exposure to environmental impacts and risks in their supply chains through bottom-up emergent events such as environmental scandals 
+
+(Damberg et al., 2022; 
+
+Hardcopf
+
+ et al., 2021)
+
+ and media scrutiny 
+
+(China Labor Watch, 2018; 
+
+Prasso
+
+ et al., 2023)
+
+. These findings suggest the notion of an 
+
+environmental supply chain orientation
+
+, which we define as a firm’s awareness 
+
+of its environmental supply chain 
+
+impacts and 
+
+risks
+
+. 
+
+As described, our conceptualization shares some similarities with the somewhat broader 
+
+“
+
+supply chain orientation
+
+”
+
+ concept, which has been previously articulated as a firm’s
+
+ strategic recognition and implementation of supply chain management principles within an organization, emphasizing the alignment of internal structures, behaviors, and collaboration practices
+
+(Esper et al., 2010; Jadhav et al., 2019; Patel et al., 2013)
+
+. Our concept also represents an organizational state of awareness yet differs in that our concept incorporates important bottom-up attentional processes, with an emphasis on information that resides outside the organization, i.e., environmental impacts and risks embedded in the supply chain. Furthermore, we propose that information gleaned from an environmental supply chain orientation has value since it raises 
+
+misalignments
+
+ between a firm’s current engagements with firm-level corporate sustainability and meaningful climate action, motivating important strategic responses. In this way, an environmental supply chain orientation represents a novel concept, which we elaborate in our subsequent integrated attentional framework and hypothesis development section, as follows. 
+
+An Integrated 
+
+Perspective
+
+Building on the ABV 
+
+(Ocasio, 1997, 2011)
+
+ and insights from the sustainable supply chain literature 
+
+(Blanco, 2021; Hartmann &amp; Moeller, 2014)
+
+, we propose that an environmental supply chain orientation works by affecting the firm’s attentional engagement processes, more closely attuning the firm to salient climate change issues, providing the necessary understanding, capabilities, and motivations for making an SBTi commitment. More specifically, we propose that firms can 
+
+proactive
+
+ly
+
+ or 
+
+reactive
+
+ly
+
+ adopt an environmental supply chain orientation. Proactive adoption relates to the firm’s extant attentional perspective, as indicated by its prior strategic commitments to environmental supply chain management. Reactive adoption relates to emergent external stimuli related to a firm’s environmental supply chain impacts.
+
+Firms that have proactively adopted an environmental supply chain orientation should be more prepared to make SBTi commitments as they are more likely to have developed a greater appreciation for their broader environmental impacts and exposure to salient climate change risks. In this way, an environmental supply chain orientation works as a top-down attentional perspective that influences the firm’s strategic response to climate change. Furthermore, such firms will continue to proactively reinforce their attentional perspective through ongoing attentional engagement processes as they build greater awareness of the complex interorganizational aspects that are necessary to successfully pursue corporate climate change mitigation 
+
+(Blanco et al., 2016; Galvin, 2017)
+
+. 
+
+Several examples drawn from the literature illustrate how a proactively developed environmental supply chain orientation provides firms with important information about their exposure to climate change risks while shaping subsequent strategic responses. 
+
+(
+
+Gualandris
+
+ et 
+
+al., 2015)
+
+ theorized how sustainable supply chain evaluation and verification processes can help firms develop a richer understanding of their own environmental impacts, which can enhance firms’ accountability to a broader and more diverse set of stakeholders while increasing firms’ motivations for reducing exposure to climate change risks. 
+
+(Blanco, 2021)
+
+ analyzed CDP data and found that as firms engaged with supply chain carbon 
+
+footprinting
+
+, the content of their own environmental disclosures significantly shifted, signifying firms’ growing awareness of their contributions and exposure to climate change risks. 
+
+(Villena &amp; Gioia, 2018)
+
+ developed a grounded theoretical model that highlighted how multinational firms’ commitments to sustainable supply chain management helped them to recursively learn about new sustainability risks and develop capabilities to address them, while working to cascade environmental performance improvement practices throughout their supply chains. 
+
+Altogether, such findings suggest that as firms proactively develop an environmental supply chain orientation, they learn more about their own impacts as well as their broader contributions and exposure to climate change, motivating future mitigation decisions at the firm-level. From an integrated ABV perspective, engaging with environmental supply chain management in a proactive manner should ultimately serve to influence a firm’s attentional selection outcomes in a manner that aligns with pursuing scientifically valid carbon reduction commitments.
+
+Hypothesis 1 (H1): 
+
+A proactively adopted environmental supply chain orientation promotes SBTi commitment.
+
+Firms may also reactively adopt an environmental supply chain orientation through bottom-up attentional processes, influencing SBTi commitments. Independently of whether firms have incorporated environmental supply chain management practices and policies, their attention to such issues can be triggered by bottom-up external stimuli. 
+
+(
+
+Hardcopf
+
+ et al., 2021)
+
+ found that firms responded to environmental accidents by altering their adoption of environmental management practices. This relationship was demonstrated to be stronger for firms without a history of demonstrating environmental sustainability leadership, indicating the potential for such stimuli to trigger an environmental impact mitigation response, even in cases where the firm’s prior attentional perspective did not incorporate environmental management criteria. In a study of the fashion industry, 
+
+(Hartmann, 2021)
+
+ found that media exposure and negative framing triggered firms to pursue sustainable supply chain management practices. In a longitudinal study of US firms, 
+
+(Damberg et al., 2022)
+
+ found similar findings, which indicated that firms responded to negative media scrutiny about social issues by making commitments to social supply chain management practices. In summary, this literature suggests that external stimuli, such as media scrutiny related to environmental supply chain issues, can play an influential role in fostering an environmental supply chain orientation. Furthermore, such 
+
+research highlights that firms’ responses to such scrutiny incorporate strong signals of environmental impact mitigation as evidenced by observable environmental practice adoptions.
+
+Viewed through an integrated ABV perspective, when an external stimulus related to an environmental supply chain issue emerges, the firm’s attentional engagement processes become acutely involved with developing a broader awareness of its own environmental impacts and exposure to climate change risks. This process can work independently from the firm’s attentional perspective, such that prior engagements with environmental supply chain management are not required as an overarching structure to perceive and interpret the significance of the firm’s broader environmental impacts and exposure to climate change. However, awareness building can also work to influence the firm’s attentional perspective such that environmental impact mitigation initiatives are subsequently incorporated into the firm’s core values, strategy, and practices moving forward. In addition to such sensemaking and awareness building, attentional engagement processes that become attuned to the firm’s environmental impacts and risks are likely to strongly influence the firm’s attentional selection outcomes in a manner that aligns with pursuing scientifically valid carbon reduction commitments.
+
+Hypothesis 2 (H2):
+
+A reactively adopted environmental supply chain orientation promotes SBTi commitment.
+
+Data and Empirical Modeling Approach
+
+Databases
+
+To test our hypotheses, we assembled a unique panel dataset, comprised of archival data gathered from SBTi, CDP, 
+
+RepRisk
+
+, Bloomberg, and 
+
+Compustat
+
+. Our sample contains all public firm-year observations with cross-representation in 
+
+RepRisk
+
+ and 
+
+Compustat
+
+ (North America and Global fundamentals data), thereby, combining important information about environmental supply chain orientation data with basic demographic and financial information. In total, our unbalanced panel from 2007 to 2020 contains 171,280 firm-year observations comprised of 14,638 unique firms across 115 countries and 24 industries (four-digit GICS classification).
+
+We collected and merged data on SBTi commitments from the publicly available database maintained by the SBTi organization using ISIN and firm names. With growing interest to understand firm’s commitments to robust climate mitigation, SBTi data has been increasingly used in empirical scholarly research 
+
+(Bendig, Wagner, &amp; Lau, 2023; Dahlmann, 
+
+Branicki
+
+, &amp; Brammer, 2019)
+
+. SBTi data included information on the nature and timing of firms’ SBTi commitments. Based on the SBTi data that we accessed and downloaded on April 8, 2023, we identified 1484 unique firms in our panel with SBTi commitments (4115 firm-year observations). 
+
+We hand-collected data from CDP’s Supply Chain Program (SCP) annual reports from the program’s inception in 2008 to 2020, which each contained a list of member firms from the 
+
+given year. The CDP SCP 
+
+is 
+
+an initiative 
+
+designed to 
+
+manage
+
+ the environmental 
+
+impacts
+
+ of supply chains by enabling member companies to better understand and reduce key 
+
+performance dimensions such as
+
+ carbon emissions, water use, and deforestation through collaboration with their suppliers.
+
+ The CDP SCP is often associated with corporate leadership 
+
+in the area of
+
+ sustainable supply chain management 
+
+(Villena &amp; Gioia, 2018, 2020)
+
+ contributing to its consideration as an especially relevant empirical context for scholarly research 
+
+(Jira &amp; Toffel, 2013; Villena &amp; 
+
+Dhanorkar
+
+, 2020)
+
+.
+
+ Through the CDP SCP, suppliers of member firms are encouraged to fill out standardized questionnaires that assess their environmental impacts and risks. On average, each member requests disclosures from 108 suppliers, with some members reaching out to over 700 suppliers annually. About half of the suppliers respond to these requests
+
+ and about half of those responding suppliers do so publicly
+
+, showcasing the program's role in enhancing environmental transparency 
+
+in supply chains 
+
+(CDP, 2021)
+
+.
+
+ Based on name matches, we identified 186 unique CDP SCP member firms in our panel (775 firm-year observations).
+
+We collected incident-level news data from 
+
+RepRisk’s
+
+ news database. 
+
+RepRisk
+
+ news data
+
+contains 
+
+comprehensive 
+
+records of reported third-party 
+
+environmental, social, and governance (
+
+ESG
+
+)
+
+ incidents involving public companies from 2007 to 2020. 
+
+RepRisk
+
+has been
+
+ recognized as the most extensive and detailed database on corporate ESG incidents globally, making it a preferred resource for scholars examining the effects and risks associated with ESG
+
+(Li &amp; Wu, 2020; 
+
+Mateska
+
+ et al., 2023)
+
+. 
+
+RepRisk
+
+ combines artificial intelligence and human analysis to develop metrics of corporate risk based on reported incidents in the media. 
+
+RepRisk
+
+ conducts daily screenings of over 100,000 sources across 20 languages, aiming to uncover pertinent ESG issues faced by corporations
+
+(
+
+RepRisk
+
+, 2020)
+
+. 
+
+ESG topics
+
+are
+
+ categorized 
+
+more broadly 
+
+into four major groups: environmental (
+
+e.g.,
+
+ local pollution), social (
+
+e.g.,
+
+ forced labor), governance (
+
+e.g.,
+
+ fraud), and cross-cutting issues (
+
+e.g.,
+
+ supply chain
+
+ issue
+
+s). Whenever 
+
+RepRisk
+
+ detects a relevant ESG issue from its monitoring, the incident is documented in its news database and tagged with one or more of the 28 ESG 
+
+topics
+
+.
+
+We also used Bloomberg’s ESG dataset to record historical firm-year environmental data. 
+
+Drawing on both public and private sources, 
+
+Bloomberg captures
+
+ an extensive collection of environmental indicators at the firm level
+
+(Huber et al., 2017)
+
+ such as emissions, energy consumption, water usage, waste management, resource efficiency, spills, financial penalties, and environmental investments. 
+
+Using Bloomberg ESG data to track emissions and disclosure data allows us to capture relevant information for a broader set of observations than other sources such as the CDP (CDP emissions data is in fact a subset of Bloomberg ESG). Despite the relatively broad coverage of Bloomberg ESG, emissions data was only available for 3277 unique firms in our panel (16,252 firm-year observations) while environmental disclosure data was only available 
+
+for 5896 unique firms (40,317 firm-year observations). We discuss our approach to mitigate the impact of missing data in our 
+
+C
+
+ontrol 
+
+V
+
+ariables
+
+ subsection
+
+ below
+
+.
+
+Finally, we collected firm-year level financial data from 
+
+Compustat
+
+. In the interests of maximizing the generalizability of our findings, we collected data from both the North American and Global fundamentals datasets, allowing us to include a globally and industrially diverse sample of firms in our analysis (115 countries and 24 industries). 
+
+Dependent Variable: SBTi Commitment
+
+Our dependent variable is a dichotomous measure that indicates whether firm 
+
+i
+
+ has an active SBTi commitment in the period 
+
+t 
+
++ 3
+
+ (
+
+SBTi
+
+i,t
+
++3
+
+). For example, we observe L’Oréal making a commitment in 2018. Therefore, 
+
+SBTi
+
+L’Oréal
+
+,t
+
++3
+
+= 1 in years greater than and equal to 2015
+
+.
+
+ This approach allows us to capture SBTi commitments up until 2023, given that our panel terminates in 2020. Furthermore, our approach helps to mitigate causal ambiguity by introducing a temporal lag between our explanatory variables and SBTi commitments. 
+
+Importantly, our chosen coding approach allows us to capture a period of significant SBTi growth, which occurred between 2020 and 2023, the periods proceeding our panel data coverage (Figure 
+
+2
+
+). Exploiting all known commitments until 2023 allows us to more fully understand what factors act as important antecedents, leading to a more rigorous and robust testing of our hypotheses. Indicative of SBTi commitment growth between 2020 and 2023, we identified roughly five times as many firms in our panel that made SBTi commitments as compared to employing a 2020 SBTi commitment cut-off. More specifically, using the measure 
+
+SBTi
+
+i,t
+
++3
+
+, we captured commitments made by a total of 1484 unique firms in our panel data. In comparison, using the measure 
+
+SBTi
+
+i,t
+
++2
+
+, which only includes commitments up to 2022, we identified 1296 unique firms with commitments in our panel data; using 
+
+SBTi
+
+i,t
+
++1
+
+, we captured far fewer commitments (733 unique firms); and using 
+
+SBTi
+
+i,t
+
+we captured the fewest (306 unique firms). 
+
+In spite of
+
+ the identification advantages of using 
+
+SBTi
+
+i,t
+
++3
+
+ as outlined above, we ran a series of robustness tests to ensure that our results remained consistent across different temporal lags in our dependent variable (
+
+Appendix
+
+ A)
+
+.
+
+ Therefore, all things considered, we assessed 
+
+SBTi
+
+i,t
+
++3
+
+ as the most appropriate measure for our main set of analyses. Finally, in line with contemporaneous research 
+
+(Bolton &amp; 
+
+Kacperczyk
+
+, 2023)
+
+, our classification of commitments includes both pledged commitments and approved targets
+
+.
+
+FIGURE 2
+
+. 
+
+SBTi Commitments Over Time
+
+Explanatory Variables
+
+To test H1, the effect of a proactively adopted environmental supply chain orientation, we include an indicator variable that captures whether firm 
+
+i
+
+ was a member of CDP’s supply chain program in year 
+
+t
+
+ (
+
+CDP 
+
+SCP
+
+i,t
+
+). We chose CDP SCP membership as it represents the most widely recognized voluntary initiative aimed specifically at proactively managing and addressing environmental impacts in supply chains. The CDP SCP helps member firms generate voluntary environmental disclosure from its suppliers, which is regarded by diverse stakeholders as a bedrock component of corporate sustainability 
+
+(Marshall et al., 2016; Sodhi &amp; Tang, 2019)
+
+. Reflective of the CDP SCP’s reputation as a leading initiative 
+
+in the area of
+
+ environmental supply chain management, CDP SCP membership has been used as a 
+
+criteria
+
+ for identifying environmental supply chain sustainability leaders in the academic and practitioner press 
+
+(Jira &amp; Toffel, 2013; Villena &amp; 
+
+Dhanorkar
+
+, 2020; Villena &amp; Gioia, 2018, 2020)
+
+. Therefore, CDP SCP membership serves as an appropriate proxy for a firm’s proactive environmental supply chain orientation.
+
+To test H2, the effect of a reactively adopted environmental supply chain orientation, we include a measure of firms’ exposure to environmental supply chain media scrutiny, measured as firm 
+
+i
+
+'s number of third-party reported environmental supply chain news incidents in year 
+
+t
+
+ (
+
+ESC 
+
+Incidents
+
+i,t
+
+). We constructed this measure from 
+
+RepRisk’s
+
+ News dataset by filtering incidents with environmental and supply chain topic tags. We then aggregated and counted these incidents at the firm-year level to construct our measure. Media scrutiny and news incidents have been 
+
+shown to garner the attention of firms in the context of firm-level environmental practices 
+
+(
+
+Hardcopf
+
+ et al., 2021)
+
+ and contexts of sustainable supply chain management 
+
+(Damberg et al., 2022)
+
+. Therefore, firms that experience a greater number of environmental supply chain news incidents are likely to become more aware and reactively oriented towards their own environmental supply chain impacts and risks.
+
+Control Variables
+
+Informed by
+
+ prior research
+
+, we controlled for several important time-variant characteristics at both the firm-year and industry level. First, prior research has indicated that firms’ internal orientation towards environmental management may have an impact on both the firms’ environmental supply chain orientation and carbon abatement investments 
+
+(Villena &amp; 
+
+Dhanorkar
+
+, 2020)
+
+. Therefore, we included Bloomberg’s Environmental Disclosure Score, (
+
+EDS
+
+i,t
+
+), as a proxy for firms’ internal commitments to measuring and managing their environmental impacts and risks 
+
+(Bellamy et al., 2020)
+
+. We also controlled for firms’ carbon emissions by including the natural logarithm of a firm’s Scope 1 emissions
+
+,
+
+ (
+
+Ln
+
+[
+
+Scope 1
+
+i,t
+
+]), as prior research indicated that Scope 1 emissions may be related to both firms’ environmental supply chain impacts 
+
+(Song et al., 2023)
+
+ and their propensities to make SBTi commitments 
+
+(Bolton &amp; 
+
+Kacperczyk
+
+, 2023)
+
+. Since we did not have complete data coverage for measures of 
+
+EDS 
+
+(complete for 24% of our sample) and 
+
+Scope 1 
+
+(complete for 9% of our sample)
+
+,
+
+ we coded missing values as zero. Across all reported model specifications, we also included two dichotomous indicator variables that took on a value of one for observations with missing disclosure (
+
+ED
+
+S
+
+Missing
+
+i,t
+
+) and/or emissions data (
+
+Scope 1 
+
+Missing
+
+i,
+
+t
+
+). This approach allowed us to retain all observations for which we otherwise had complete data and followed the empirical approach of others 
+
+(Jira &amp; Toffel, 2013)
+
+. Firm profitability (
+
+ROA
+
+i,t
+
+) and size (
+
+Ln[
+
+Total 
+
+Assets
+
+]
+
+i
+
+,t
+
+) might play a role in shaping both firms’ orientation towards environmental supply chain issues and their firm-level environmental commitments 
+
+(Cormier &amp; Magnan, 2003; Jira &amp; Toffel, 2013)
+
+. 
+
+Second, multiple macro temporal trends and heterogeneity at country-, industry-, and firm-levels of analysis were controlled for using fixed effects. Demographic data and descriptive statistics of all our variables are included in Tables 1 and 2.
+
+Modeling Approach
+
+To model SBTi commitments, we considered various specifications including the linear probability model (LPM) as well as generalized least squares (GLS) approaches including logistic regression and various forms of time-to-event models including multilevel survival analysis 
+
+(Hox et al., 2017)
+
+. We employ LPM due to several advantages over comparable GLS methods. First, GLS methods rely on maximum likelihood estimation, which are often prone to convergence 
+
+issues with large complex datasets. This challenge can be especially problematic when the data include one or more aggregate grouping structures such as in our case (e.g., longitudinal within-firm grouping and cross-classified clusters at country- and industry-levels of analysis). We did in fact encounter some convergence issues with all maximum likelihood estimation approaches that accounted for the multilevel grouping structure present in our data. Differently, LPM can flexibly accommodate controlling for fixed country and industry factors that have 
+
+been described as being
+
+ important to shaping firm-level carbon abatement targets 
+
+(KPMG, 2021)
+
+ by including fixed effects at one or more levels of analysis. Furthermore, compared to logistic regression, LPM can accommodate data that have no within group variance, which allows us to fully exploit all our data for various longitudinal within-panel analyses. Our LPM models are specified as follows:
+
+SBT
+
+i
+
+i, t+3
+
+=
+
+β
+
+1
+
+×CDP SC
+
+P
+
+i,t
+
++
+
+β
+
+2
+
+× ESC Incident
+
+s
+
+i,t
+
++
+
+γX+FE+
+
+ϵ
+
+i,t
+
+,
+
+where 
+
+SBTi
+
+i,t+3
+
+ indicates whether firm 
+
+i
+
+ has made an SBTi commitment in the period 
+
+t 
+
++ 3, 
+
+CDP 
+
+SCP
+
+i,t
+
+indicates whether firm 
+
+i
+
+was a CDP Supply Chain Program member in year 
+
+t
+
+, 
+
+ESC 
+
+Incidents
+
+i,t
+
+ is the number of reported environmental supply chain incidents attributed to firm 
+
+i
+
+in year 
+
+t
+
+, 
+
+X
+
+ is a vector of time-variant control variables, 
+
+FE
+
+ are a combination of year, country, industry, and firm fixed effects, and 
+
+i,t
+
+ is the error term.
+
+TABLE 1
+
+. Sample Demographics and SBTi Commitments
+
+TABLE 2
+
+Descriptive Statistics
+
+Note
+
+: Abbreviations are as follows: 
+
+Obs
+
+ = firm-year observations; SD = standard deviation; Min = minimum; Med = median; Max = maximum; Cor = Pearson correlations; SBTi = Science Based Targets initiative; ESC = environmental supply chain; CDP SCP Carbon Disclosure Project Supply Chain Program; EDS = Environmental Disclosure Score; ROA = return on assets. Prior to transformation, Total Assets was measured in British pound sterling (millions). ROA and Total Assets are 
+
+winsorized
+
+ at the 1st and 99th percentiles to reduce the impact of extreme outliers, though results are consistent using non-
+
+winsorized
+
+ data. All correlations are statistically significant beyond a p &lt; 0.10 threshold.
+
+Results
+
+Linear Probability Models
+
+Results from our main model specifications are reported in Table 
+
+3
+
+. Model 1 includes fixed effects for country and time. Model 2 builds on Model 1 by adding fixed effects for industry. Model 3 includes firm and year fixed effects. Of note, Models 1 and 2 exploit cross-sectional between-firm variance (within country and within industry/country), while in Model 3, the inclusion of firm-fixed effects restricts our analysis to longitudinal within firm variance. While in some cases, there might be a theoretical reason to preference the analysis of cross-sectional 
+
+or
+
+ longitudinal variance 
+
+(
+
+Ketokivi
+
+ et al., 2021)
+
+, our theory for the effect of environmental supply chain orientation suggests that differences should manifest in both between-firm and within-firm SBTi commitments. For example, our theory suggests that firms with a higher environmental supply chain orientation – whether proactively (H1) or reactively (H2) driven – should be more likely to make SBTi commitments compared to their peers with lower environmental supply chain orientation (cross-sectional difference). Similarly, our theory suggests that as firm raise their environmental supply chain orientation, they should become more likely to make an SBTi commitment (longitudinal difference). Therefore, our approach to analyze cross-sectional and longitudinal variance in SBTi commitments is appropriate and can only serve to strengthen the rigor of our hypothesis testing. Finally, our modeling choices are consistent with contemporaneous research on SBTi commitments 
+
+(Bolton &amp; 
+
+Kacperczyk
+
+, 2023)
+
+. Next, we turn to interpreting and elaborating on our results.
+
+TABLE 3
+
+Main Results
+
+With respect to
+
+ theoretical institutional enablers, country-level factors have been most strongly linked to firms’ preparedness to make meaningful carbon reduction commitments 
+
+(KPMG, 2021)
+
+, providing us with a strong rationale for preferencing the inclusion of country fixed effects as a baseline analysis (Model 1). In Model 1, the estimate for 
+
+CDP SCP
+
+ is positive and statistically significant (
+
+ = .1187, 
+
+p 
+
+&lt;.0001), indicating a positive association between CDP SCP membership and SBTi commitments. In terms of economic significance, CDP SCP membership is estimated to be associated with an approximate 12% higher likelihood of an SBTi commitment being made, which indicates that a proactively adopted environmental supply chain orientation promotes SBTi commitment, providing strong support for H1. The estimate for 
+
+ESC Incidents
+
+ is also positive and statistically significant (
+
+ = .0206, 
+
+p 
+
+&lt;.0001), indicating that for each reported environmental supply chain incident, there is an approximately 2% higher likelihood of an SBTi commitment being made, providing strong support for H2, the effect of a reactively adopted environmental supply chain orientation. Altogether, Model 1 provides strong empirical evidence for the relationship between an environmental supply chain orientation and subsequent SBTi commitments, indicating that environmental supply chain considerations are strongly related to firms’ motivations to make meaningful carbon abatement commitments. 
+
+Because Model 1 only incorporates country and time fixed effects, we can conclude that the above estimates hold true across firms within the same countries. At the same time, without further analysis, we cannot yet confidently rule out whether potential industry characteristics across firms may be correlated with 
+
+CDP SCP
+
+ membership and 
+
+ESC Incidents
+
+ in such a way that may bias our estimates of interest. Therefore, in Model 2, we add industry fixed effects to control for potentially salient fixed differences across industries. In Model 2, the estimate for 
+
+CDP SCP 
+
+is also positive and statistically significant (
+
+ = .1160, 
+
+p 
+
+&lt;.0001), as is the estimate for 
+
+ESC Incidents
+
+ (
+
+ = .0201, 
+
+p 
+
+&lt;.0001). In terms of statistical and economic significance, these results remain very closely in line with our baseline model providing strong support for H1 and H2, while strongly mitigating potential concerns that cross-industry differences could be confounding our baseline estimates. 
+
+In Model 3, we focus our analysis on longitudinal within-firm variation. Consistent with Models 1 and 2, the estimates for 
+
+CDP SCP 
+
+(
+
+ = .1683, 
+
+p 
+
+&lt;.0001) and 
+
+ESC Incidents
+
+ (
+
+ = .0241, 
+
+p 
+
+&lt;.0001) are positive and statistically significant, lending additional support for H1 and H2. While the magnitude of the estimated coefficient for CDP SCP appears to be somewhat higher than previous models, following the approach of 
+
+(Clogg, Petkova, &amp; 
+
+Haritou
+
+, 1995)
+
+, we can only conclude with a marginal degree of confidence (
+
+p 
+
+= .0862) that the two estimated 
+
+CDP SCP
+
+ coefficients from Models 1 and 3 are statistically different in magnitude. In either case, the two coefficients should indeed be interpreted from slightly different perspectives as related to the 
+
+cross-sectional versus longitudinal sources of variance under examination 
+
+(
+
+Ketokivi
+
+ et al., 2021)
+
+. In the case of Model 3, our interpretation is entirely longitudinal in nature as we conclude that 
+
+CDP SCP
+
+increases the likelihood that firms will subsequently make an SBTi commitment by an estimated 17%. Examining the estimate for 
+
+ESC Incidents
+
+, we conclude that for each reported environmental supply chain incident, a firm is approximately 2% more likely to make a subsequent SBTi commitment. In summary, all specifications provided strong support for H1 and H2, indicating that proactively and reactively adopted environmental supply chain orientations strongly influence firms to make SBTi commitments.
+
+In terms of control variables, we find expected relationships across all measures. First, the estimate for 
+
+EDS
+
+is positive and statistically significant across all specifications, indicating that firms with an internal orientation towards environmental management were more likely to make an SBTi commitment. Second, the estimate for 
+
+Ln
+
+(
+
+Scope 1
+
+) is negative and statistically significant signifying that firms with lower Scope 1 emissions were more likely to make an SBTi commitment. Third, the estimate for 
+
+ROA 
+
+is positive and significant, suggesting that more profitable firms were more likely to make an SBTi commitment. Fourth, the estimate for 
+
+Ln
+
+(
+
+Total Assets
+
+) is positive and significant, indicating that larger firms were more likely to make SBTi commitments. 
+
+Robustness Tests
+
+Despite the advantages of our chosen coding approach for our dependent variable (
+
+refer back
+
+ to our 
+
+Dependent Variable: SBTi Commitment
+
+subsection), we acknowledge that we assume a temporal match between firm characteristics three years prior to their SBTi commitments. Furthermore, our approach does not account for any potentially relevant dynamics in our covariates for the periods 2020 – 2023. To mitigate these concerns, we conducted a series of sensitivity analyses by checking whether our main findings were influenced by different temporal lags through substituting 
+
+SBTi
+
+i,t
+
++2
+
+, 
+
+SBTi
+
+i,t
+
++
+
+1
+
+, and 
+
+SBTi
+
+i,t
+
+ as our dependent variable in different models. Across all cases, as reported in 
+
+Appendix
+
+ A, we found consistent support for our hypothesized estimates in terms of both approximate economic and statistical significance.
+
+Additionally, even though our chosen LPM modeling approach has several advantages over other potential comparable methods (see
+
+ our 
+
+Linear Probability Model
+
+s
+
+ subsection
+
+ above
+
+), we ran a series of robustness tests using logistic regression and multilevel survival models. In both cases, as reported in 
+
+Appendix
+
+ B, results remained consistent with those of our main analyses.
+
+Discussion and Conclusion
+
+Our study investigated the relationship between firms' environmental supply chain orientation and their commitment to Science-Based Targets
+
+, 
+
+uncovering significant insights that contribute 
+
+to both the attention-based view and sustainable supply chain management literature.
+
+ We tested our hypotheses using secondary data from SBTi, CDP, 
+
+RepRisk
+
+, Bloomberg ESG, and 
+
+Compustat
+
+.
+
+First, w
+
+e found robust support for 
+
+our
+
+ hypothes
+
+i
+
+s
+
+ (H1)
+
+ that a proactive
+
+ly adopted
+
+ environmental supply chain orientation, as evidenced by membership in the CDP's Supply Chain Program, enhances the likelihood of a firm making an SBTi commitment
+
+ by 12 – 17%
+
+.
+
+ Second,
+
+we also found strong and consistent support for our hypothesis (H2) that a reactively adopted environmental supply chain orientation influences SBTi commitment, where each incident was estimated to increase the likelihood of SBTi commitment by approximately 2%. Below, we elaborate on the implications of our findings for theory and practice.
+
+Theoretical Contributions
+
+Our research findings offer two primary theoretical contributions. First, our research finds support for a novel theoretical relationship between supply chain-level attention and firm-level adaptation. Namely, our work underscores the impact of stimuli emerging from the supply chain-level of analysis on firm’s engagement with science-based carbon abatement, a linkage that has not previously been identified in the ABV or sustainable supply chain management literatures. Specifically, we reveal the importance of an environmental supply chain orientation as a mechanism for sensing, learning and organizational adaptation in the context of understanding and responding to salient environmental impacts and risks. Furthermore, our findings indicate that an environmental supply chain orientation can be proactively developed 
+
+or 
+
+reactively incorporated into a firm’s attentional engagement processes, ultimately affecting the firm’s attentional selection as indicated by whether it makes an SBTi commitment. The proactive pathway identified through CDP SCP membership and the reactive pathway via environmental supply chain media scrutiny confirms the dual nature of attention related to top-down and bottom-up processes that are core to the notion of attentional engagement 
+
+(Ocasio, 2011)
+
+. Our findings extend the ABV to include external stimuli that emerge from the supply chain-level of analysis as well as the context of SBTi commitments. Additionally, our findings highlight the significance of both internal motivations and external pressures in shaping corporate sustainability strategies, which extends prior empirical sustainable supply chain management research 
+
+(Villena &amp; 
+
+Dhanorkar
+
+, 2020)
+
+ to the context of SBTi commitments. 
+
+Second, we extend prior research on antecedents of environmental management practices to the context of SBTi commitments, which exhibit several novel characteristics due to their performance-based nature, involvement of external third-party actors, long temporal horizons, and inherent complexity. Specifically, we reveal the 
+
+role of supply chains as significant drivers of corporate sustainability strategies
+
+, contributing to our 
+
+understanding of how supply chain management practices can catalyze firm-level sustainability commitments.
+
+ Our proactive 
+
+environmental supply chain orientation findings extend
+
+(Blanco, 2021)
+
+,
+
+ which demonstrated that firm engaging in environmental supply chain carbon emissions reporting significantly altered their firm-level environmental disclosures. Our work indicates that firms also make strategic firm-level carbon abatement decisions after gaining environmental information from their
+
+ extend
+
+ed network of suppliers. Our reactive environmental supply chain orientation findings extend the work of 
+
+(
+
+Hardcopf
+
+ et al., 2021)
+
+, suggesting that firms 
+
+can also 
+
+react to 
+
+reported environmental incidents that occur 
+
+beyond
+
+ the firm’s own boundaries. Even though reported environmental incidents originate from the supply chain, our work suggests that firms are likely to respond by making strategic corporate sustainability commitments at the firm-level
+
+.
+
+Managerial Implications
+
+Our findings can be leveraged by practitioners and other stakeholders to promote corporate engagement in meaningful climate change mitigation efforts. First, our work indicates that practitioners can proactively foster an environmental supply chain orientation within their own organizations, helping them better prepare to make SBTi commitments. Relatedly, our study highlights the importance of engaging with sustainable supply chain management as a strategic lever for pursuing environmental sustainability and mitigating emissions in line with the goals set forth in the Paris Agreement. Firms not currently engaged in proactive environmental supply chain management practices should consider the benefits of initiatives like the CDP Supply Chain Program, not only for their potential to improve environmental performance 
+
+(Diebel et al., 2024a)
+
+, but also as a step towards making credible commitments to reducing carbon emissions.
+
+Such membership can provide firms with the frameworks, tools, and peer support needed to navigate the complexities of setting and achieving ambitious environmental targets.
+
+ Our work complements emerging empirical evidence that e
+
+ngaging with suppliers
+
+ can reveal significant environmental performance opportunities 
+
+(Blanco, 2021)
+
+by
+
+ position
+
+ing
+
+ firms to more confidently make SBTi commitments.
+
+Second, our findings indicate that third party stakeholders such as the media and NGOs can spur meaningful changes to firm’s attentional engagement with salient environmental impacts and risks that emerge from the supply chain-level of analysis. Reported environmental supply chain incidents reveal environmental impacts and risks that may otherwise have been ignored or remained unknown by focal firms. Therefore, reporters and NGOs can leverage their voices to reveal significant opportunities for firms to better understand their broader environmental impacts and risks, ultimately promoting more corporate engagement with SBTi commitments and target setting.
+
+Limitations, Future Research, and Conclusions
+
+Our study is not without limitations
+
+, which present promising avenues for future research
+
+. First, our analysis was based on secondary data sources, which may not capture the full depth and nuance of firms' environmental supply chain orientations. 
+
+For example, rather than approaching CDP SCP membership in a proactive manner, some firms might reactively gain membership in response to peer behavior or other sources of external pressure. 
+
+Future research could benefit from primary data, including interviews and surveys with 
+
+key decision makers within the firm, such as 
+
+corporate sustainability officers, to gain deeper insights into the motivations and challenges associated with SBTi commitments.
+
+Second, our study focused primarily on publicly available data, which might introduce a bias towards firms that are more transparent or under greater scrutiny. Further research could explore the dynamics within privately held firms or those in emerging markets, where data availability and transparency practices may differ.
+
+Finally
+
+, while our findings shed light on the positive relationship between environmental supply chain orientation and SBTi commitments, the 
+
+voluntary 
+
+nature of 
+
+CDP SCP membership
+
+and SBTi commitments 
+
+do not 
+
+lend themselves to a precise identification strategy. Other e
+
+xperimental designs or longitudinal case studies could provide further evidence of causality and uncover the mechanisms through which supply chain management practices directly influence the adoption of science-based targets.
+
+In conclusion, our research enriches the literature on corporate sustainability, the attention-based view of the firm, and sustainable supply chain management. By identifying the pathways through which environmental supply chain orientation influences SBTi commitments, we provide a foundation for future inquiries into the complex interplay between supply chain management and corporate environmental strategies.
+
+References
+
+Bansal, P., &amp; Bogner, W. C. (2002). Deciding on ISO 14001: Economics, institutions, and context. 
+
+Long Range Planning
+
+, 
+
+35
+
+(3), 269–290. https://doi.org/10.1016/S0024-6301(02)00046-8
+
+Bellamy, M. A., 
+
+Dhanorkar
+
+, S., &amp; Subramanian, R. (2020). Administrative environmental innovations, supply network structure, and environmental disclosure. 
+
+Journal of Operations Management
+
+, 
+
+66
+
+(7–8), 895–932. https://doi.org/10.1002/joom.1114
+
+Bendig, D., Wagner, A., &amp; Lau, K. (2023). Does it pay to be science-based green? The impact of science-based emission-reduction targets on corporate financial performance. 
+
+Journal of Industrial Ecology
+
+, 
+
+27
+
+(1), 125–140. https://doi.org/10.1111/jiec.13341
+
+Blanco, C. (2021). Supply Chain Carbon 
+
+Footprinting
+
+ and Climate Change Disclosures of Global Firms. 
+
+Production and Operations Management
+
+, 1–33. https://doi.org/10.1111/poms.13421
+
+Blanco, C. (2022). A Classification of Carbon Abatement Opportunities of Global Firms. 
+
+Manufacturing and Service Operations Management
+
+, 
+
+24
+
+(5), 2648–2665. https://doi.org/10.1287/msom.2022.1115
+
+Blanco, C., Caro, F., &amp; Corbett, C. J. (2016). The state of supply chain carbon 
+
+footprinting
+
+: analysis of CDP disclosures by US firms. 
+
+Journal of Cleaner Production
+
+, 
+
+135
+
+, 1189–1197. https://doi.org/10.1016/j.jclepro.2016.06.132
+
+Bolton, P., &amp; 
+
+Kacperczyk
+
+, M. T. (2023). Firm Commitments. 
+
+National Bureau of Economic Research Working Paper Series
+
+, 
+
+31244
+
+. https://doi.org/10.3386/w31244
+
+Bové, A.-T., &amp; Swartz, S. (2016). Starting at the source: sustainability in supply chains. In 
+
+McKinsey &amp; Company
+
+.
+
+CDP. (2021). 
+
+Transparency to transformation: A chain reaction
+
+ (Issue February).
+
+CDP. (2023). 
+
+Scoping Out: Tracking Nature Across the Supply Chain
+
+.
+
+China Labor Watch. (2018). Apple’s Failed CSR Audit: A Report on Catcher Technology Polluting the Environment and Harming the Health of Workers. In 
+
+China Labor Watch
+
+.
+
+Clogg, C. C., Petkova, E., &amp; 
+
+Haritou
+
+, A. (1995). Statistical Methods for Comparing Regression Coefficients Between Models. 
+
+American Journal of Sociology
+
+, 
+
+100
+
+(5), 1261–1293.
+
+Corbett, C. J., &amp; Kirsch, D. A. (2001). International diffusion of ISO 14000 certification. 
+
+Production and Operations Management
+
+, 
+
+10
+
+(3), 327–342.
+
+Cormier, D., &amp; Magnan, M. (2003). Environmental reporting management: A 
+
+continenal
+
+ European perspective. 
+
+Journal of Accounting and Public Policy
+
+, 
+
+22
+
+(1), 43–62. https://doi.org/10.1016/S0278-4254(02)00085-6
+
+Dahlmann, F., 
+
+Branicki
+
+, L., &amp; Brammer, S. (2019). Managing Carbon Aspirations: The Influence of Corporate Climate Change Targets on Environmental Performance. 
+
+Journal of Business Ethics
+
+, 
+
+158
+
+(1), 1–24. https://doi.org/10.1007/s10551-017-3731-z
+
+Damberg, S. V., Hartmann, J., &amp; Heese, H. S. (2022). Does bad press help or hinder sustainable supply chain management? An empirical investigation of US-based corporations. 
+
+International Journal of Production Economics
+
+, 
+
+249
+
+(March 2021), 108504. https://doi.org/10.1016/j.ijpe.2022.108504
+
+Diebel, W., 
+
+Gualandris
+
+, J., &amp; Klassen, R. D. (2024a). Carbon Disclosure Project Supply Chain Program membership and reported incidents: A quasi-experimental study. 
+
+Working Paper
+
+.
+
+Diebel, W., 
+
+Gualandris
+
+, J., &amp; Klassen, R. D. (2024b). How do suppliers respond to institutional complexity? Examining voluntary public environmental disclosure in a global manufacturing supply network. 
+
+Journal of Operations Management
+
+, 
+
+70
+
+(2), 285–315. https://doi.org/10.1002/joom.1293
+
+Esper, T. L., Defee, C. C., &amp; Mentzer, J. T. (2010). A framework of supply chain orientation. 
+
+The International Journal of Logistics Management
+
+, 
+
+21
+
+(2), 161–179. https://doi.org/10.1108/09574091011071906
+
+Freiberg, D., Grewal, J., &amp; Serafeim, G. (2021). Science-Based Carbon Emissions Targets. 
+
+SSRN Electronic Journal
+
+. https://doi.org/10.2139/ssrn.3804530
+
+Galvin, D. (2017). 
+
+Supply chain: the missing link for corporate climate action
+
+. https://www.cdp.net/en/articles/supply-chain/supply-chain-the-missing-link-for-corporate-climate-action
+
+Glazer, E. (2021). Companies Brace Themselves for New ESG Regulations Under Biden. 
+
+Wall Street Journal
+
+.
+
+Gualandris
+
+, J., Klassen, R. D., Vachon, S., &amp; 
+
+Kalchschmidt
+
+, M. (2015). Sustainable evaluation and verification in supply chains: Aligning and leveraging accountability to stakeholders. 
+
+Journal of Operations Management
+
+, 
+
+38
+
+, 1–13.
+
+Gualandris
+
+, J., Longoni, A., Luzzini, D., &amp; 
+
+Pagell
+
+, M. (2021). The association between supply chain structure and transparency: A large-scale empirical study. 
+
+Journal of Operations Management
+
+, 1–25. https://doi.org/10.1002/joom.1150
+
+Hahn, R., 
+
+Reimsbach
+
+, D., &amp; Schiemann, F. (2015). Organizations, Climate Change, and Transparency: Reviewing the Literature on Carbon Disclosure. 
+
+Organization and Environment
+
+, 
+
+28
+
+(1), 80–102. https://doi.org/10.1177/1086026615575542
+
+Hardcopf
+
+, R., Shah, R., &amp; 
+
+Dhanorkar
+
+, S. (2021). The Impact of a Spill or Pollution Accident on Firm Environmental Activity: An Empirical Investigation. 
+
+Production and Operations Management
+
+, 
+
+30
+
+(8), 2467–2491. https://doi.org/10.1111/poms.13392
+
+Hartmann, J. (2021). Toward a more complete theory of sustainable supply chain management: the role of media attention. 
+
+Supply Chain Management: An International Journal
+
+, 
+
+26
+
+(4), 532–547. https://doi.org/10.1108/SCM-01-2020-0043
+
+Hartmann, J., &amp; Moeller, S. (2014). Chain liability in multitier supply 
+
+chains?
+
+ Responsibility attributions for unsustainable supplier behavior. 
+
+Journal of Operations Management
+
+, 
+
+32
+
+(5), 281–294. https://doi.org/10.1016/j.jom.2014.01.005
+
+Hora, M., &amp; Subramanian, R. (2019). Relationship between Positive Environmental Disclosures and Environmental Performance: An Empirical Investigation of the Greenwashing Sin of the Hidden Trade-off. 
+
+Journal of Industrial Ecology
+
+, 
+
+23
+
+(4), 855–868. https://doi.org/10.1111/jiec.12823
+
+Hox, J. J., 
+
+Moerbeek
+
+, M., &amp; van de 
+
+Schoot
+
+, R. (2017). 
+
+Multilevel Analysis: Techniques and Applications
+
+ (3rd Edition). Routledge. https://doi.org/10.4324/9781315650982
+
+Huber, B. M., Comstock, M., Polk, D., &amp; Wardwell LLP. (2017). 
+
+ESG Reports and Ratings: What They Are, Why They Matter
+
+.
+
+Jadhav, A., Orr, S., &amp; Malik, M. (2019). The role of supply chain orientation in achieving supply chain sustainability. 
+
+International Journal of Production Economics
+
+, 
+
+217
+
+(August 2018), 112–125. https://doi.org/10.1016/j.ijpe.2018.07.031
+
+Jira, C., &amp; Toffel, M. W. (2013). Engaging supply chains in climate change. 
+
+Manufacturing and Service Operations Management
+
+, 
+
+15
+
+(4), 559–577. https://doi.org/10.1287/msom.1120.0420
+
+Ketokivi
+
+, M., Bromiley, P., &amp; 
+
+Awaysheh
+
+, A. (2021). Making Theoretically Informed Choices in Specifying Panel-Data Models. 
+
+Production and Operations Management
+
+, 
+
+30
+
+(7), 2069–2076. https://doi.org/10.1111/poms.13347
+
+Kim, Y. H., &amp; Davis, G. F. (2016). Challenges for global supply chain sustainability: Evidence from conflict minerals reports. 
+
+Academy of Management Journal
+
+, 
+
+59
+
+(6), 1896–1916.
+
+Klassen, R. D., &amp; Lynch, M. (2023). 
+
+Corporate strategies for Net Zero
+
+ (Issues 1–28).
+
+KPMG. (2021). 
+
+Net Zero Readiness Index 2021
+
+.
+
+Li, J., &amp; Wu, D. (2020). Do corporate social responsibility engagements lead to real environmental, social, and governance impact? 
+
+Management Science
+
+, 
+
+66
+
+(6), 2564–2588. https://doi.org/10.1287/mnsc.2019.3324
+
+Marshall, D., McCarthy, L., McGrath, P., &amp; Harrigan, F. (2016). What’s your strategy for supply chain disclosure? 
+
+MIT Sloan Management Review
+
+, 
+
+57
+
+(2), 36–45.
+
+Mateska
+
+, I., Busse, C., Kach, A. P., &amp; Wagner, S. M. (2023). Sustainability-related transgressions in global supply chains: When do legitimacy spillovers hurt buying firms the most? 
+
+Journal of Supply Chain Management
+
+, 
+
+September 2022
+
+. https://doi.org/10.1111/jscm.12308
+
+Ocasio, W. (1997). Towards an attention-based view of the firm. 
+
+Strategic Management Journal
+
+, 
+
+18
+
+, 187–206.
+
+Ocasio, W. (2011). Attention to Attention. 
+
+Organization Science
+
+, 
+
+22
+
+(5), 1286–1296. https://doi.org/10.1287/orsc.1100.0602
+
+Patel, P. C., 
+
+Azadegan
+
+, A., &amp; 
+
+Ellram
+
+, L. M. (2013). The effects of strategic and structural supply chain orientation on operational and customer-focused performance. 
+
+Decision Sciences
+
+, 
+
+44
+
+(4), 713–753. https://doi.org/10.1111/deci.12034
+
+Prasso
+
+, S., Brice, J., &amp; Lin, J. C. F. (2023). 
+
+Ford’s electric pickup is built from metal that’s damaging the Amazon
+
+. Bloomberg.
+
+RepRisk
+
+. (2020). 
+
+RepRisk
+
+ methodology overview
+
+ (Issue December).
+
+SBTi. (2022). 
+
+Science-Based Net-Zero
+
+. 1–43.
+
+Sodhi, M. M. S., &amp; Tang, C. S. (2019). Research Opportunities in Supply Chain Transparency. 
+
+Production and Operations Management
+
+, 
+
+28
+
+(12), 2946–2959. https://doi.org/10.1111/poms.13115
+
+Song, S., Dong, Y., Kull, T., Carter, C., &amp; Xu, K. (2023). Supply chain leakage of greenhouse gas emissions and supplier innovation. 
+
+Production and Operations Management
+
+, 
+
+32
+
+(3), 882–903. https://doi.org/10.1111/poms.13904
+
+Villena, V. H., &amp; 
+
+Dhanorkar
+
+, S. (2020). 
+
+How
+
+ institutional pressures and managerial incentives elicit carbon transparency in global supply chains. 
+
+Journal of Operations Management
+
+, 1–38. https://doi.org/10.1002/joom.1088
+
+Villena, V. H., &amp; Gioia, D. A. (2018). On the riskiness of lower-tier suppliers: Managing sustainability in supply networks. 
+
+Journal of Operations Management
+
+, 
+
+64
+
+(1), 65–87.
+
+Villena, V. H., &amp; Gioia, D. A. (2020). A more sustainable global supply chain. 
+
+Harvard Business Review
+
+, 
+
+March-April
+
+, 84–93.
+
+Wu, Z., &amp; Jia, F. (2018). Toward a theory of supply chain fields – understanding the institutional process of supply chain localization. 
+
+Journal of Operations Management
+
+, 
+
+58–59
+
+(April), 27–41. https://doi.org/10.1016/j.jom.2018.03.002
+
+APPENDIX A
+
+In this Appendix, we report results for models that adopt different time-lagged coding approaches: Panel A: 
+
+SBTi
+
+i,t
+
++2
+
+; Panel B: 
+
+SBTi
+
+i,t
+
++1
+
+; and Panel C: 
+
+SBTi
+
+i,t
+
+.
+
+ All results are consistent with our main findings in Table 
+
+3
+
+, providing additional support for H1 and H2.
+
+As we narrow the window for identifying future SBTi commitments, we capture fewer and fewer firms with such commitments in our data. Alongside our results, we report the number of Unique Firms with recorded SBTi Commitments for comparison across the different dependent variables.
+
+APPENDIX B
+
+In this Appendix, we report results for different model specifications. In both cases, our analyses are limited to exploiting cross-sectional variance as both logistic regression (Panel A) and 
+
+multilevel survival analysis (Panel B) are not suitable for examining purely longitudinal panel variance.
+
+In the case of logistic regression, we used an almost identical setup compared to our main models, where SBTi commitments were modeled as follows: 
+
+logit
+
+SBT
+
+i
+
+i, t+3
+
+=
+
+β
+
+1
+
+×CDP SC
+
+P
+
+i,t
+
++
+
+β
+
+2
+
+× ESC Incident
+
+s
+
+i,t
+
++
+
+γX+FE+
+
+ϵ
+
+i,t
+
+.
+
+The interpretation of this model is like those of our main results, where estimated parameters indicate the effect of each variable represented in the form of a log odds ratio (as compared to a probability in our main models). To ease interpretation, we added a column where the logistic regression parameter estimates are transformed from log odds ratios into probabilities (average marginal effects). Since logistic regression does not handle fixed effects associated with zero within variance, the number of total observations that contribute to each model is somewhat restricted compared to our main models in Table 
+
+3
+
+. For example, because we employ time fixed effects, time periods without any SBTi commitment variance including all pre-commitment periods (&lt; 2015) are dropped from the analyses. Further, when country fixed effects are included, additional observations from countries that feature zero SBTi commitments in our data are dropped. Despite the limited ability of this approach to exploit all our available data, our results are largely consistent with those of our main models in Table 3, lending additional support to H1 and H2. 
+
+We also used multilevel survival analysis to model firm commitments. While our main analyses were designed to understand how between- and within-firm differences affected our outcome of interest, a survival analysis aims to understand what factors are associated with time-to-event – i.e., the focus is on explaining differences in commitment times rather than whether commitments are made at all. While a survival model lends itself to a slightly different research question than we set out to answer, our objective with running a survival model is to enrich and potentially strengthen our understanding of the relationship between an environmental supply chain orientation and firms’ SBTi commitments.
+
+We deemed a multilevel survival analysis as the most appropriate type of survival model to employ since firms in our data were cross classified into clusters at the country and industry levels of analysis. Importantly, it was important to estimate and control for cross-cluster differences at both levels, which were likely to contribute to heterogeneity in firms’ preparedness to make meaning carbon abatement commitments 
+
+(KPMG, 2021)
+
+. 
+
+Following the literature 
+
+(Hox et al., 2017)
+
+, this approach necessitated a slightly different data structure and setup. First, firm panels were terminated after their actual SBTi commitment. For example, since we observe L’Oréal making a commitment in 2018, we excluded observations for L’Oréal after 2018. All firms that did not make commitments by 2020 were censored
+
+. Therefore, the number of observations for this approach is slightly lower than that of our main models. Second, as there are many periods in our data, we explored making the model more parsimonious by replacing time fixed effects, indicative of the baseline hazard probability, as a smooth function of 
+
+t
+
+. We explored linear and various polynomials for 
+
+t 
+
+up to the third degree. Among all options, a linear time trend was chosen due to its superior fit, as indicated by the deviance statistic, and overall model parsimony. Our full model was thus specified as follows:
+
+logit
+
+SBT
+
+i
+
+i,m,j,t
+
+=
+
+β
+
+1
+
+×CDP SC
+
+P
+
+i,m,j,t
+
++
+
+β
+
+2
+
+× ESC Incident
+
+s
+
+i,m,j,t
+
++χ×
+
+t
+
+i,m,j,t
+
++ 
+
+γ
+
+X
+
+i,m,j,t
+
++
+
+α
+
+0,m
+
+2
+
++
+
+δ
+
+0,j
+
+2
+
+.
+
+Notably, the above specification includes several modifications to our prior models: the addition of 
+
+m 
+
+and 
+
+j 
+
+subscripts denote the observation’s corresponding country, 
+
+m
+
+, and industry, 
+
+j
+
+; 
+
+t
+
+i,m,j,t
+
+ represents the inclusion of time as a linear term in our models; 
+
+α
+
+0,m
+
+2
+
+ is a random effect that captures intercept variance at the country level; and 
+
+δ
+
+0,j
+
+2
+
+ is a random effect that captures intercept variance at the industry level. The other terms in our model remain the same as in prior specifications.
+
+ Finally, all continuous measures were grand mean-centered prior to model estimation.
+
+Results were largely consistent with those of our main models in Table 
+
+3
+
+, where 
+
+CDP SCP
+
+ and 
+
+ESC Incidents
+
+ were both estimated to be positively associated with SBTi commitments. Overall, these results provide additional support for H1, H2, and enrich our understanding of the overall relationship between an environmental supply chain orientation and firms’ SBTi commitments.
