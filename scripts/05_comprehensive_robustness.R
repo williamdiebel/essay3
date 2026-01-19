@@ -86,51 +86,40 @@ cat("  Complete-case observations:", nrow(data_complete), "\\n")
 cat("  Observations dropped:", nrow(data) - nrow(data_complete), "\\n")
 cat("  Retention rate:", round(nrow(data_complete) / nrow(data) * 100, 1), "%\\n\\n")
 
-# First-stage for control function (on complete data) ####
-cat("Running first-stage regression for control function...\\n")
+cat("NOTE: Using simplified control function approach:\\n")
+cat("      - First stage: OLS without FE (no singleton issues)\\n")
+cat("      - Second stage: Rare event models with FE using feglm()\\n")
+cat("      This avoids cross-stage singleton removal complications.\\n\\n")
 
-first_stage <- feols(
-  as.formula(paste("cdp_sc_member ~ peer_cdp_share_country_lag +",
-                   controls_formula, "| headquarter_country + year")),
-  cluster = ~ gvkey,
-  data = data_complete
-)
+# First-stage: OLS without FE (simpler, no singleton removal) ####
+cat("Running first-stage OLS for control function...\\n")
+
+first_stage_formula <- as.formula(paste(
+  "cdp_sc_member ~ peer_cdp_share_country_lag +", controls_formula
+))
+
+first_stage <- lm(first_stage_formula, data = data_complete)
+
+# Add residuals directly (no singleton issues with lm)
+data_complete$fs_resid <- residuals(first_stage)
 
 cat("  First-stage F-statistic:",
-    round(coeftable(first_stage)["peer_cdp_share_country_lag", "t value"]^2, 2), "\\n")
+    round(summary(first_stage)$fstatistic[1], 2), "\\n")
+cat("  Instrument coefficient (peer_cdp_share_country_lag):",
+    round(coef(first_stage)["peer_cdp_share_country_lag"], 4), "\\n\\n")
 
-# Handle feols singleton removal with merge approach
-# Add sequential row index to data_complete
-data_complete[, row_idx := .I]
-
-# Create data frame with residuals and their corresponding row indices
-fs_data <- data.frame(
-  row_idx = as.numeric(names(residuals(first_stage))),
-  fs_resid = as.numeric(residuals(first_stage))
-)
-
-# Merge to keep only observations used by feols
-# Using all.x=FALSE ensures we only keep rows that have residuals
-data_complete <- merge(data_complete, fs_data, by = "row_idx", all.x = FALSE)
-
-# Remove the row_idx column as it's no longer needed
-data_complete[, row_idx := NULL]
-
-cat("  Final sample after singleton removal:", nrow(data_complete), "observations\\n\\n")
-
-# Convert to regular data.frame for glm functions
-data_complete_df <- as.data.frame(data_complete)
-
-# Model 1.1: IV-Probit (highreach incidents) ####
+# Model 1.1: IV-Probit with FE (highreach incidents) ####
 cat("--- Model 1.1: IV-Probit with esc_incidents_highreach ---\\n\\n")
 
-probit_highreach <- glm(
+probit_highreach <- feglm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
     esc_incidents_highreach + e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
   family = binomial(link = "probit"),
-  data = data_complete_df
+  cluster = ~ gvkey,
+  data = data_complete
 )
 
 # Marginal effects
@@ -155,13 +144,15 @@ cat("\\n")
 # Model 1.2: IV-Logit (highreach incidents) ####
 cat("--- Model 1.2: IV-Logit with esc_incidents_highreach ---\\n\\n")
 
-logit_highreach <- glm(
+logit_highreach <- feglm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
     esc_incidents_highreach + e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
   family = binomial(link = "logit"),
-  data = data_complete_df
+  cluster = ~ gvkey,
+  data = data_complete
 )
 
 marg_logit_highreach <- margins(logit_highreach,
@@ -184,13 +175,15 @@ cat("\\n")
 # Model 1.3: Cloglog (rare events) ####
 cat("--- Model 1.3: Complementary Log-Log (rare events) ---\\n\\n")
 
-cloglog_highreach <- glm(
+cloglog_highreach <- feglm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
     esc_incidents_highreach + e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
   family = binomial(link = "cloglog"),
-  data = data_complete_df
+  cluster = ~ gvkey,
+  data = data_complete
 )
 
 marg_cloglog_highreach <- margins(cloglog_highreach,
@@ -224,13 +217,15 @@ cat("Testing: highsev, all incidents, log, binary\\n\\n")
 # Model 2.1: High Severity ####
 cat("--- Model 2.1: IV-Probit with esc_incidents_highsev ---\\n\\n")
 
-probit_highsev <- glm(
+probit_highsev <- feglm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
     esc_incidents_highsev + e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
   family = binomial(link = "probit"),
-  data = data_complete_df
+  cluster = ~ gvkey,
+  data = data_complete
 )
 
 marg_probit_highsev <- margins(probit_highsev,
@@ -253,13 +248,15 @@ cat("\\n")
 # Model 2.2: All Incidents ####
 cat("--- Model 2.2: IV-Probit with esc_incidents (all) ---\\n\\n")
 
-probit_all <- glm(
+probit_all <- feglm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
     esc_incidents + e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
   family = binomial(link = "probit"),
-  data = data_complete_df
+  cluster = ~ gvkey,
+  data = data_complete
 )
 
 marg_probit_all <- margins(probit_all,
@@ -283,15 +280,16 @@ cat("\\n")
 cat("--- Model 2.3: IV-Probit with log(esc_incidents_highreach + 1) ---\\n\\n")
 
 data_complete$log_incidents_highreach <- log(data_complete$esc_incidents_highreach + 1)
-data_complete_df <- as.data.frame(data_complete)
 
-probit_log <- glm(
+probit_log <- feglm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
     log_incidents_highreach + e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
   family = binomial(link = "probit"),
-  data = data_complete_df
+  cluster = ~ gvkey,
+  data = data_complete
 )
 
 marg_probit_log <- margins(probit_log,
@@ -315,15 +313,16 @@ cat("\\n")
 cat("--- Model 2.4: IV-Probit with any_incident_highreach (binary) ---\\n\\n")
 
 data_complete$any_incident_highreach <- as.numeric(data_complete$esc_incidents_highreach > 0)
-data_complete_df <- as.data.frame(data_complete)
 
-probit_binary <- glm(
+probit_binary <- feglm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
     any_incident_highreach + e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
   family = binomial(link = "probit"),
-  data = data_complete_df
+  cluster = ~ gvkey,
+  data = data_complete
 )
 
 marg_probit_binary <- margins(probit_binary,
@@ -397,14 +396,16 @@ results_list$ols_interact_highreach <- list(
 # Model 3.2: IV-Probit with Interaction ####
 cat("--- Model 3.2: IV-Probit with CDP SC × Incidents interaction ---\\n\\n")
 
-probit_interact <- glm(
+probit_interact <- feglm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + esc_incidents_highreach +
     cdp_sc_member:esc_incidents_highreach +
     e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
   family = binomial(link = "probit"),
-  data = data_complete_df
+  cluster = ~ gvkey,
+  data = data_complete
 )
 
 # Marginal effects conditional on CDP membership
@@ -437,14 +438,16 @@ cat("\\n")
 cat("--- Model 3.3: Interactions with alternative incident measures ---\\n\\n")
 
 # High severity
-probit_interact_highsev <- glm(
+probit_interact_highsev <- feglm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + esc_incidents_highsev +
     cdp_sc_member:esc_incidents_highsev +
     e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
   family = binomial(link = "probit"),
-  data = data_complete_df
+  cluster = ~ gvkey,
+  data = data_complete
 )
 
 cat("High Severity Interaction Coefficient:\\n")
@@ -452,14 +455,16 @@ cat("  β(interaction) =", round(coef(probit_interact_highsev)["cdp_sc_member:es
     ", p =", round(summary(probit_interact_highsev)$coefficients["cdp_sc_member:esc_incidents_highsev", "Pr(>|z|)"], 4), "\\n\\n")
 
 # All incidents
-probit_interact_all <- glm(
+probit_interact_all <- feglm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + esc_incidents +
     cdp_sc_member:esc_incidents +
     e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
   family = binomial(link = "probit"),
-  data = data_complete_df
+  cluster = ~ gvkey,
+  data = data_complete
 )
 
 cat("All Incidents Interaction Coefficient:\\n")
@@ -467,14 +472,16 @@ cat("  β(interaction) =", round(coef(probit_interact_all)["cdp_sc_member:esc_in
     ", p =", round(summary(probit_interact_all)$coefficients["cdp_sc_member:esc_incidents", "Pr(>|z|)"], 4), "\\n\\n")
 
 # Binary
-probit_interact_binary <- glm(
+probit_interact_binary <- feglm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + any_incident_highreach +
     cdp_sc_member:any_incident_highreach +
     e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
   family = binomial(link = "probit"),
-  data = data_complete_df
+  cluster = ~ gvkey,
+  data = data_complete
 )
 
 cat("Binary Indicator Interaction Coefficient:\\n")
