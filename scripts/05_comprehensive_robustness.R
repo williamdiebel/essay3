@@ -86,27 +86,45 @@ cat("  Complete-case observations:", nrow(data_complete), "\\n")
 cat("  Observations dropped:", nrow(data) - nrow(data_complete), "\\n")
 cat("  Retention rate:", round(nrow(data_complete) / nrow(data) * 100, 1), "%\\n\\n")
 
-cat("NOTE: Using simplified control function approach:\\n")
-cat("      - First stage: OLS without FE (no singleton issues)\\n")
-cat("      - Second stage: Rare event models with FE using feglm()\\n")
-cat("      This avoids cross-stage singleton removal complications.\\n\\n")
+# Identify and remove singletons manually ####
+cat("Identifying fixed effect singletons (country-year combinations with only 1 obs)...\\n")
 
-# First-stage: OLS without FE (simpler, no singleton removal) ####
-cat("Running first-stage OLS for control function...\\n")
+# Count observations per FE group
+data_complete[, fe_group_size := .N, by = .(headquarter_country, year)]
 
-first_stage_formula <- as.formula(paste(
-  "cdp_sc_member ~ peer_cdp_share_country_lag +", controls_formula
-))
+cat("  Observations in singleton FE groups:", sum(data_complete$fe_group_size == 1), "\\n")
 
-first_stage <- lm(first_stage_formula, data = data_complete)
+# Remove singletons
+data_complete <- data_complete[fe_group_size > 1]
+data_complete[, fe_group_size := NULL]  # Remove temporary column
 
-# Add residuals directly (no singleton issues with lm)
-data_complete$fs_resid <- residuals(first_stage)
+cat("  Observations after removing singletons:", nrow(data_complete), "\\n\\n")
+
+# First-stage with FE (methodologically rigorous) ####
+cat("Running first-stage regression with fixed effects for control function...\\n")
+
+first_stage <- feols(
+  cdp_sc_member ~ peer_cdp_share_country_lag +
+    e_disc_coalesced_zeros + e_disc_missing +
+    log(scope1_zeros + 1) + scope1_missing +
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
+  cluster = ~ gvkey,
+  data = data_complete
+)
 
 cat("  First-stage F-statistic:",
-    round(summary(first_stage)$fstatistic[1], 2), "\\n")
-cat("  Instrument coefficient (peer_cdp_share_country_lag):",
-    round(coef(first_stage)["peer_cdp_share_country_lag"], 4), "\\n\\n")
+    round(coeftable(first_stage)["peer_cdp_share_country_lag", "t value"]^2, 2), "\\n")
+cat("  Observations used:", first_stage$nobs, "\\n")
+
+# Add residuals (now lengths match exactly since we pre-removed singletons)
+data_complete$fs_resid <- residuals(first_stage)
+
+cat("  Successfully added", length(residuals(first_stage)), "residuals to",
+    nrow(data_complete), "observations\\n\\n")
+
+cat("NOTE: Using rigorous control function approach with FE in both stages\\n")
+cat("      All models use the same sample after manual singleton removal\\n\\n")
 
 # Model 1.1: IV-Probit with FE (highreach incidents) ####
 cat("--- Model 1.1: IV-Probit with esc_incidents_highreach ---\\n\\n")
