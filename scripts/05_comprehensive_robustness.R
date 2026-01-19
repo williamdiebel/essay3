@@ -77,11 +77,25 @@ first_stage <- feols(
   data = data
 )
 
-# Extract residuals
-data$fs_resid <- residuals(first_stage)
-
 cat("  First-stage F-statistic:",
-    round(coeftable(first_stage)["peer_cdp_share_country_lag", "t value"]^2, 2), "\\n\\n")
+    round(coeftable(first_stage)["peer_cdp_share_country_lag", "t value"]^2, 2), "\\n")
+
+# Filter to complete cases (observations used by first_stage) ####
+cat("  Filtering to complete cases used by first-stage model...\\n")
+cat("    Original observations:", nrow(data), "\\n")
+
+# Get the observations actually used in first_stage
+data_complete <- data[first_stage$obs_selection$obsRemoved == FALSE, ]
+
+# Add residuals to complete data
+data_complete$fs_resid <- residuals(first_stage)
+
+cat("    Complete-case observations:", nrow(data_complete), "\\n")
+cat("    Observations dropped:", nrow(data) - nrow(data_complete), "\\n")
+cat("    Retention rate:", round(nrow(data_complete) / nrow(data) * 100, 1), "%\\n\\n")
+
+# Convert to regular data.frame for glm functions
+data_complete_df <- as.data.frame(data_complete)
 
 # Model 1.1: IV-Probit (highreach incidents) ####
 cat("--- Model 1.1: IV-Probit with esc_incidents_highreach ---\\n\\n")
@@ -92,7 +106,7 @@ probit_highreach <- glm(
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
   family = binomial(link = "probit"),
-  data = as.data.frame(data)
+  data = data_complete_df
 )
 
 # Marginal effects
@@ -123,7 +137,7 @@ logit_highreach <- glm(
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
   family = binomial(link = "logit"),
-  data = as.data.frame(data)
+  data = data_complete_df
 )
 
 marg_logit_highreach <- margins(logit_highreach,
@@ -152,7 +166,7 @@ cloglog_highreach <- glm(
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
   family = binomial(link = "cloglog"),
-  data = as.data.frame(data)
+  data = data_complete_df
 )
 
 marg_cloglog_highreach <- margins(cloglog_highreach,
@@ -192,7 +206,7 @@ probit_highsev <- glm(
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
   family = binomial(link = "probit"),
-  data = as.data.frame(data)
+  data = data_complete_df
 )
 
 marg_probit_highsev <- margins(probit_highsev,
@@ -221,7 +235,7 @@ probit_all <- glm(
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
   family = binomial(link = "probit"),
-  data = as.data.frame(data)
+  data = data_complete_df
 )
 
 marg_probit_all <- margins(probit_all,
@@ -244,7 +258,8 @@ cat("\\n")
 # Model 2.3: Log Transformation ####
 cat("--- Model 2.3: IV-Probit with log(esc_incidents_highreach + 1) ---\\n\\n")
 
-data$log_incidents_highreach <- log(data$esc_incidents_highreach + 1)
+data_complete$log_incidents_highreach <- log(data_complete$esc_incidents_highreach + 1)
+data_complete_df <- as.data.frame(data_complete)
 
 probit_log <- glm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
@@ -252,7 +267,7 @@ probit_log <- glm(
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
   family = binomial(link = "probit"),
-  data = as.data.frame(data)
+  data = data_complete_df
 )
 
 marg_probit_log <- margins(probit_log,
@@ -275,7 +290,8 @@ cat("\\n")
 # Model 2.4: Binary Indicator ####
 cat("--- Model 2.4: IV-Probit with any_incident_highreach (binary) ---\\n\\n")
 
-data$any_incident_highreach <- as.numeric(data$esc_incidents_highreach > 0)
+data_complete$any_incident_highreach <- as.numeric(data_complete$esc_incidents_highreach > 0)
+data_complete_df <- as.data.frame(data_complete)
 
 probit_binary <- glm(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
@@ -283,7 +299,7 @@ probit_binary <- glm(
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
   family = binomial(link = "probit"),
-  data = as.data.frame(data)
+  data = data_complete_df
 )
 
 marg_probit_binary <- margins(probit_binary,
@@ -325,7 +341,7 @@ ols_interact <- feols(
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
     headquarter_country + year,
   cluster = ~ gvkey,
-  data = data
+  data = data_complete
 )
 
 summary(ols_interact)
@@ -364,7 +380,7 @@ probit_interact <- glm(
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
   family = binomial(link = "probit"),
-  data = as.data.frame(data)
+  data = data_complete_df
 )
 
 # Marginal effects conditional on CDP membership
@@ -404,7 +420,7 @@ probit_interact_highsev <- glm(
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
   family = binomial(link = "probit"),
-  data = as.data.frame(data)
+  data = data_complete_df
 )
 
 cat("High Severity Interaction Coefficient:\\n")
@@ -419,7 +435,7 @@ probit_interact_all <- glm(
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
   family = binomial(link = "probit"),
-  data = as.data.frame(data)
+  data = data_complete_df
 )
 
 cat("All Incidents Interaction Coefficient:\\n")
@@ -434,7 +450,7 @@ probit_interact_binary <- glm(
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1,
   family = binomial(link = "probit"),
-  data = as.data.frame(data)
+  data = data_complete_df
 )
 
 cat("Binary Indicator Interaction Coefficient:\\n")
