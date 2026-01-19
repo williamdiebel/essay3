@@ -89,9 +89,6 @@ cat("  Retention rate:", round(nrow(data_complete) / nrow(data) * 100, 1), "%\\n
 # First-stage for control function (on complete data) ####
 cat("Running first-stage regression for control function...\\n")
 
-# Add row ID for matching
-data_complete$row_id <- 1:nrow(data_complete)
-
 first_stage <- feols(
   as.formula(paste("cdp_sc_member ~ peer_cdp_share_country_lag +",
                    controls_formula, "| headquarter_country + year")),
@@ -102,17 +99,18 @@ first_stage <- feols(
 cat("  First-stage F-statistic:",
     round(coeftable(first_stage)["peer_cdp_share_country_lag", "t value"]^2, 2), "\\n")
 
-# Get the row IDs that were actually used (matched by rownames of residuals)
-used_row_ids <- as.numeric(names(residuals(first_stage)))
+# Handle feols singleton removal by matching residuals to rows
+# Initialize fs_resid as NA for all rows
+data_complete$fs_resid <- NA_real_
 
-# Filter to only observations used by first_stage
-data_complete <- data_complete[data_complete$row_id %in% used_row_ids, ]
+# Get the row numbers that feols actually used (from residual names)
+used_row_indices <- as.numeric(names(residuals(first_stage)))
 
-# Add residuals (now lengths match)
-data_complete$fs_resid <- residuals(first_stage)
+# Assign residuals to the corresponding rows
+data_complete$fs_resid[used_row_indices] <- residuals(first_stage)
 
-# Remove row_id column
-data_complete$row_id <- NULL
+# Filter to only rows with non-NA residuals (i.e., rows feols actually used)
+data_complete <- data_complete[!is.na(fs_resid)]
 
 cat("  Final sample after singleton removal:", nrow(data_complete), "observations\\n\\n")
 
