@@ -1,6 +1,6 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Script: 05_comprehensive_robustness.R
-# Purpose: Comprehensive robustness testing for dual-pathway hypotheses
+# Purpose: Comprehensive robustness testing for dual-pathway hypotheses (LPM)
 #
 # Research Question:
 #   H1: Internal intervention (CDP SC) → Risk awareness → SBTi commitment
@@ -8,20 +8,17 @@
 #   H3: Interaction - External matters MORE when internal capability exists
 #
 # Strategy:
-#   Phase 1: Rare event models (Probit, Logit, Cloglog)
-#   Phase 2: Alternative incident measures (highsev, all, log, binary)
-#   Phase 3: Interaction effects (KEY - complementarity)
-#   Phase 4: Subsample heterogeneity
-#   Phase 5: Alternative pathways (mediation)
+#   Phase 1: Alternative incident measures (highreach, highsev, all)
+#   Phase 2: Transformations (log, binary)
+#   Phase 3: Interaction effects (KEY - complementarity test for H3)
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # Load packages ####
 library(tidyverse)
 library(data.table)
-library(fixest)      # For feols/feglm (fast FE estimation)
+library(fixest)      # For feols (fast FE estimation)
 library(lfe)         # For felm (IV with FE)
-library(margins)     # For marginal effects
 library(broom)       # For tidy output
 
 # Set working directory ####
@@ -30,13 +27,13 @@ if (!dir.exists("cleaned_data")) {
 }
 
 # Load data ####
-cat("Loading data...\\n")
+cat("Loading data...\n")
 data <- readRDS("cleaned_data/complete_data_2022_instrument_country.rds")
 setDT(data)
 
-cat("  Observations:", nrow(data), "\\n")
-cat("  Firms:", uniqueN(data$gvkey), "\\n")
-cat("  Years:", min(data$year), "-", max(data$year), "\\n\\n")
+cat("  Observations:", nrow(data), "\n")
+cat("  Firms:", uniqueN(data$gvkey), "\n")
+cat("  Years:", min(data$year), "-", max(data$year), "\n\n")
 
 # Convert factors ####
 data[, `:=`(
@@ -57,19 +54,16 @@ controls_formula <- paste(controls, collapse = " + ")
 results_list <- list()
 
 ################################################################################
-# PHASE 1: RARE EVENT MODELS
+# DATA PREPARATION
 ################################################################################
 
-cat("\\n" %+% strrep("=", 80) %+% "\\n")
-cat("PHASE 1: RARE EVENT MODELS\\n")
-cat(strrep("=", 80) %+% "\\n\\n")
-
-cat("Motivation: LPM inappropriate for rare events (2-3% baseline)\\n")
-cat("Testing: Probit, Logit, Cloglog with control function approach\\n\\n")
+cat("\n" %+% strrep("=", 80) %+% "\n")
+cat("DATA PREPARATION\n")
+cat(strrep("=", 80) %+% "\n\n")
 
 # Identify complete cases for all variables needed ####
-cat("Identifying complete cases for all variables needed...\\n")
-cat("  Original observations:", nrow(data), "\\n")
+cat("Identifying complete cases for all variables needed...\n")
+cat("  Original observations:", nrow(data), "\n")
 
 # Variables needed for analysis
 vars_needed <- c("sbti_commitment_lead1", "cdp_sc_member", "peer_cdp_share_country_lag",
@@ -82,32 +76,23 @@ vars_needed <- c("sbti_commitment_lead1", "cdp_sc_member", "peer_cdp_share_count
 # Filter to complete cases
 data_complete <- data[complete.cases(data[, ..vars_needed]), ]
 
-cat("  Complete-case observations:", nrow(data_complete), "\\n")
-cat("  Observations dropped:", nrow(data) - nrow(data_complete), "\\n")
-cat("  Retention rate:", round(nrow(data_complete) / nrow(data) * 100, 1), "%\\n\\n")
+cat("  Complete-case observations:", nrow(data_complete), "\n")
+cat("  Observations dropped:", nrow(data) - nrow(data_complete), "\n")
+cat("  Retention rate:", round(nrow(data_complete) / nrow(data) * 100, 1), "%\n\n")
 
-# Identify and remove singletons manually ####
-cat("Identifying problematic fixed effect groups...\\n")
+# Remove singleton FE groups (only needed for FE estimation) ####
+cat("Removing singleton fixed effect groups...\n")
 
-# Step 1: Remove FE groups with only 1 observation
+# Count observations per country-year FE group
 data_complete[, fe_group_size := .N, by = .(headquarter_country, year)]
-cat("  Singleton FE groups (n=1):", sum(data_complete$fe_group_size == 1), "obs\\n")
+cat("  Singleton FE groups (n=1):", sum(data_complete$fe_group_size == 1), "obs\n")
 data_complete <- data_complete[fe_group_size > 1]
+data_complete[, fe_group_size := NULL]
 
-# Step 2: Remove FE groups with no outcome variation (all 0s or all 1s)
-# This is required for binary outcome models with FE
-data_complete[, outcome_var := var(sbti_commitment_lead1), by = .(headquarter_country, year)]
-cat("  FE groups with no outcome variation:",
-    sum(is.na(data_complete$outcome_var) | data_complete$outcome_var == 0), "obs\\n")
-data_complete <- data_complete[!is.na(outcome_var) & outcome_var > 0]
+cat("  Observations after removing singletons:", nrow(data_complete), "\n\n")
 
-# Clean up temporary columns
-data_complete[, c("fe_group_size", "outcome_var") := NULL]
-
-cat("  Observations after removing problematic FE groups:", nrow(data_complete), "\\n\\n")
-
-# First-stage with FE (methodologically rigorous) ####
-cat("Running first-stage regression with fixed effects for control function...\\n")
+# First-stage IV regression for control function ####
+cat("Running first-stage IV regression for control function...\n")
 
 first_stage <- feols(
   cdp_sc_member ~ peer_cdp_share_country_lag +
@@ -120,269 +105,37 @@ first_stage <- feols(
 )
 
 cat("  First-stage F-statistic:",
-    round(coeftable(first_stage)["peer_cdp_share_country_lag", "t value"]^2, 2), "\\n")
-cat("  Observations used:", first_stage$nobs, "\\n")
+    round(coeftable(first_stage)["peer_cdp_share_country_lag", "t value"]^2, 2), "\n")
+cat("  Instrument coefficient:",
+    round(coef(first_stage)["peer_cdp_share_country_lag"], 4), "\n")
+cat("  Observations used:", first_stage$nobs, "\n")
 
-# Add residuals (now lengths match exactly since we pre-removed singletons)
+# Add residuals for control function approach
 data_complete$fs_resid <- residuals(first_stage)
 
-cat("  Successfully added", length(residuals(first_stage)), "residuals to",
-    nrow(data_complete), "observations\\n\\n")
+cat("  Control function residuals added successfully\n\n")
 
-cat("NOTE: Using rigorous control function approach with FE in both stages\\n")
-cat("      All models use the same sample after manual singleton removal\\n\\n")
-
-# Model 1.1: IV-Probit with FE (highreach incidents) ####
-cat("--- Model 1.1: IV-Probit with esc_incidents_highreach ---\\n\\n")
-
-probit_highreach <- feglm(
-  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
-    esc_incidents_highreach + e_disc_coalesced_zeros + e_disc_missing +
-    log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
-    headquarter_country + year,
-  family = binomial(link = "probit"),
-  cluster = ~ gvkey,
-  data = data_complete
-)
-
-# Marginal effects
-marg_probit_highreach <- margins(probit_highreach,
-                                  variables = c("cdp_sc_member", "esc_incidents_highreach"))
-
-cat("Average Marginal Effects:\\n")
-print(summary(marg_probit_highreach), digits = 4)
-
-# Store results
-results_list$probit_highreach <- list(
-  model = "IV-Probit",
-  incident_measure = "highreach",
-  cdp_ame = summary(marg_probit_highreach)$AME[summary(marg_probit_highreach)$factor == "cdp_sc_member"],
-  cdp_p = summary(marg_probit_highreach)$p[summary(marg_probit_highreach)$factor == "cdp_sc_member"],
-  incident_ame = summary(marg_probit_highreach)$AME[summary(marg_probit_highreach)$factor == "esc_incidents_highreach"],
-  incident_p = summary(marg_probit_highreach)$p[summary(marg_probit_highreach)$factor == "esc_incidents_highreach"]
-)
-
-cat("\\n")
-
-# Model 1.2: IV-Logit (highreach incidents) ####
-cat("--- Model 1.2: IV-Logit with esc_incidents_highreach ---\\n\\n")
-
-logit_highreach <- feglm(
-  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
-    esc_incidents_highreach + e_disc_coalesced_zeros + e_disc_missing +
-    log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
-    headquarter_country + year,
-  family = binomial(link = "logit"),
-  cluster = ~ gvkey,
-  data = data_complete
-)
-
-marg_logit_highreach <- margins(logit_highreach,
-                                 variables = c("cdp_sc_member", "esc_incidents_highreach"))
-
-cat("Average Marginal Effects:\\n")
-print(summary(marg_logit_highreach), digits = 4)
-
-results_list$logit_highreach <- list(
-  model = "IV-Logit",
-  incident_measure = "highreach",
-  cdp_ame = summary(marg_logit_highreach)$AME[summary(marg_logit_highreach)$factor == "cdp_sc_member"],
-  cdp_p = summary(marg_logit_highreach)$p[summary(marg_logit_highreach)$factor == "cdp_sc_member"],
-  incident_ame = summary(marg_logit_highreach)$AME[summary(marg_logit_highreach)$factor == "esc_incidents_highreach"],
-  incident_p = summary(marg_logit_highreach)$p[summary(marg_logit_highreach)$factor == "esc_incidents_highreach"]
-)
-
-cat("\\n")
-
-# Model 1.3: Cloglog (rare events) ####
-cat("--- Model 1.3: Complementary Log-Log (rare events) ---\\n\\n")
-
-cloglog_highreach <- feglm(
-  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
-    esc_incidents_highreach + e_disc_coalesced_zeros + e_disc_missing +
-    log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
-    headquarter_country + year,
-  family = binomial(link = "cloglog"),
-  cluster = ~ gvkey,
-  data = data_complete
-)
-
-marg_cloglog_highreach <- margins(cloglog_highreach,
-                                   variables = c("cdp_sc_member", "esc_incidents_highreach"))
-
-cat("Average Marginal Effects:\\n")
-print(summary(marg_cloglog_highreach), digits = 4)
-
-results_list$cloglog_highreach <- list(
-  model = "Cloglog",
-  incident_measure = "highreach",
-  cdp_ame = summary(marg_cloglog_highreach)$AME[summary(marg_cloglog_highreach)$factor == "cdp_sc_member"],
-  cdp_p = summary(marg_cloglog_highreach)$p[summary(marg_cloglog_highreach)$factor == "cdp_sc_member"],
-  incident_ame = summary(marg_cloglog_highreach)$AME[summary(marg_cloglog_highreach)$factor == "esc_incidents_highreach"],
-  incident_p = summary(marg_cloglog_highreach)$p[summary(marg_cloglog_highreach)$factor == "esc_incidents_highreach"]
-)
-
-cat("\\n")
+# Baseline outcome rate ####
+cat("Baseline outcome statistics:\n")
+cat("  SBTi commitment rate:",
+    round(mean(data_complete$sbti_commitment_lead1) * 100, 2), "%\n\n")
 
 ################################################################################
-# PHASE 2: ALTERNATIVE INCIDENT MEASURES
+# PHASE 1: ALTERNATIVE INCIDENT MEASURES
 ################################################################################
 
-cat("\\n" %+% strrep("=", 80) %+% "\\n")
-cat("PHASE 2: ALTERNATIVE INCIDENT MEASURES\\n")
-cat(strrep("=", 80) %+% "\\n\\n")
+cat("\n" %+% strrep("=", 80) %+% "\n")
+cat("PHASE 1: ALTERNATIVE INCIDENT MEASURES (LPM-IV)\n")
+cat(strrep("=", 80) %+% "\n\n")
 
-cat("Motivation: Measurement choice may obscure true effect\\n")
-cat("Testing: highsev, all incidents, log, binary\\n\\n")
+cat("Motivation: Test robustness across different incident operationalizations\n")
+cat("Testing: High reach, high severity, all incidents\n\n")
 
-# Model 2.1: High Severity ####
-cat("--- Model 2.1: IV-Probit with esc_incidents_highsev ---\\n\\n")
+# Model 1.1: High Reach Incidents ####
+cat("--- Model 1.1: LPM-IV with esc_incidents_highreach ---\n\n")
 
-probit_highsev <- feglm(
-  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
-    esc_incidents_highsev + e_disc_coalesced_zeros + e_disc_missing +
-    log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
-    headquarter_country + year,
-  family = binomial(link = "probit"),
-  cluster = ~ gvkey,
-  data = data_complete
-)
-
-marg_probit_highsev <- margins(probit_highsev,
-                                variables = c("cdp_sc_member", "esc_incidents_highsev"))
-
-cat("Average Marginal Effects:\\n")
-print(summary(marg_probit_highsev), digits = 4)
-
-results_list$probit_highsev <- list(
-  model = "IV-Probit",
-  incident_measure = "highsev",
-  cdp_ame = summary(marg_probit_highsev)$AME[summary(marg_probit_highsev)$factor == "cdp_sc_member"],
-  cdp_p = summary(marg_probit_highsev)$p[summary(marg_probit_highsev)$factor == "cdp_sc_member"],
-  incident_ame = summary(marg_probit_highsev)$AME[summary(marg_probit_highsev)$factor == "esc_incidents_highsev"],
-  incident_p = summary(marg_probit_highsev)$p[summary(marg_probit_highsev)$factor == "esc_incidents_highsev"]
-)
-
-cat("\\n")
-
-# Model 2.2: All Incidents ####
-cat("--- Model 2.2: IV-Probit with esc_incidents (all) ---\\n\\n")
-
-probit_all <- feglm(
-  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
-    esc_incidents + e_disc_coalesced_zeros + e_disc_missing +
-    log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
-    headquarter_country + year,
-  family = binomial(link = "probit"),
-  cluster = ~ gvkey,
-  data = data_complete
-)
-
-marg_probit_all <- margins(probit_all,
-                            variables = c("cdp_sc_member", "esc_incidents"))
-
-cat("Average Marginal Effects:\\n")
-print(summary(marg_probit_all), digits = 4)
-
-results_list$probit_all <- list(
-  model = "IV-Probit",
-  incident_measure = "all",
-  cdp_ame = summary(marg_probit_all)$AME[summary(marg_probit_all)$factor == "cdp_sc_member"],
-  cdp_p = summary(marg_probit_all)$p[summary(marg_probit_all)$factor == "cdp_sc_member"],
-  incident_ame = summary(marg_probit_all)$AME[summary(marg_probit_all)$factor == "esc_incidents"],
-  incident_p = summary(marg_probit_all)$p[summary(marg_probit_all)$factor == "esc_incidents"]
-)
-
-cat("\\n")
-
-# Model 2.3: Log Transformation ####
-cat("--- Model 2.3: IV-Probit with log(esc_incidents_highreach + 1) ---\\n\\n")
-
-data_complete$log_incidents_highreach <- log(data_complete$esc_incidents_highreach + 1)
-
-probit_log <- feglm(
-  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
-    log_incidents_highreach + e_disc_coalesced_zeros + e_disc_missing +
-    log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
-    headquarter_country + year,
-  family = binomial(link = "probit"),
-  cluster = ~ gvkey,
-  data = data_complete
-)
-
-marg_probit_log <- margins(probit_log,
-                            variables = c("cdp_sc_member", "log_incidents_highreach"))
-
-cat("Average Marginal Effects:\\n")
-print(summary(marg_probit_log), digits = 4)
-
-results_list$probit_log <- list(
-  model = "IV-Probit",
-  incident_measure = "log_highreach",
-  cdp_ame = summary(marg_probit_log)$AME[summary(marg_probit_log)$factor == "cdp_sc_member"],
-  cdp_p = summary(marg_probit_log)$p[summary(marg_probit_log)$factor == "cdp_sc_member"],
-  incident_ame = summary(marg_probit_log)$AME[summary(marg_probit_log)$factor == "log_incidents_highreach"],
-  incident_p = summary(marg_probit_log)$p[summary(marg_probit_log)$factor == "log_incidents_highreach"]
-)
-
-cat("\\n")
-
-# Model 2.4: Binary Indicator ####
-cat("--- Model 2.4: IV-Probit with any_incident_highreach (binary) ---\\n\\n")
-
-data_complete$any_incident_highreach <- as.numeric(data_complete$esc_incidents_highreach > 0)
-
-probit_binary <- feglm(
-  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid +
-    any_incident_highreach + e_disc_coalesced_zeros + e_disc_missing +
-    log(scope1_zeros + 1) + scope1_missing +
-    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
-    headquarter_country + year,
-  family = binomial(link = "probit"),
-  cluster = ~ gvkey,
-  data = data_complete
-)
-
-marg_probit_binary <- margins(probit_binary,
-                               variables = c("cdp_sc_member", "any_incident_highreach"))
-
-cat("Average Marginal Effects:\\n")
-print(summary(marg_probit_binary), digits = 4)
-
-results_list$probit_binary <- list(
-  model = "IV-Probit",
-  incident_measure = "binary_highreach",
-  cdp_ame = summary(marg_probit_binary)$AME[summary(marg_probit_binary)$factor == "cdp_sc_member"],
-  cdp_p = summary(marg_probit_binary)$p[summary(marg_probit_binary)$factor == "cdp_sc_member"],
-  incident_ame = summary(marg_probit_binary)$AME[summary(marg_probit_binary)$factor == "any_incident_highreach"],
-  incident_p = summary(marg_probit_binary)$p[summary(marg_probit_binary)$factor == "any_incident_highreach"]
-)
-
-cat("\\n")
-
-################################################################################
-# PHASE 3: INTERACTION EFFECTS (KEY)
-################################################################################
-
-cat("\\n" %+% strrep("=", 80) %+% "\\n")
-cat("PHASE 3: INTERACTION EFFECTS (COMPLEMENTARITY)\\n")
-cat(strrep("=", 80) %+% "\\n\\n")
-
-cat("Motivation: External interventions may matter MORE when internal capability exists\\n")
-cat("Hypothesis: CDP SC × Incidents interaction positive and significant\\n\\n")
-
-# Model 3.1: OLS with Interaction (baseline) ####
-cat("--- Model 3.1: OLS with CDP SC × Incidents interaction ---\\n\\n")
-
-ols_interact <- feols(
-  sbti_commitment_lead1 ~ cdp_sc_member + esc_incidents_highreach +
-    cdp_sc_member:esc_incidents_highreach +
+lpm_highreach <- feols(
+  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + esc_incidents_highreach +
     e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
@@ -391,233 +144,399 @@ ols_interact <- feols(
   data = data_complete
 )
 
-summary(ols_interact)
+cat("Results:\n")
+cat("  CDP SC coefficient:", round(coef(lpm_highreach)["cdp_sc_member"], 4),
+    ", SE:", round(se(lpm_highreach)["cdp_sc_member"], 4),
+    ", p:", round(pvalue(lpm_highreach)["cdp_sc_member"], 4), "\n")
+cat("  Incidents coefficient:", round(coef(lpm_highreach)["esc_incidents_highreach"], 4),
+    ", SE:", round(se(lpm_highreach)["esc_incidents_highreach"], 4),
+    ", p:", round(pvalue(lpm_highreach)["esc_incidents_highreach"], 4), "\n")
+cat("  Control function (fs_resid):", round(coef(lpm_highreach)["fs_resid"], 4),
+    ", p:", round(pvalue(lpm_highreach)["fs_resid"], 4), "\n\n")
 
-# Marginal effect of incidents conditional on CDP membership
-cat("\\nConditional Marginal Effects:\\n")
-cat("Effect of incidents when NOT CDP member:",
-    round(coef(ols_interact)["esc_incidents_highreach"], 5), "\\n")
-cat("Effect of incidents when IS CDP member:",
-    round(coef(ols_interact)["esc_incidents_highreach"] +
-          coef(ols_interact)["cdp_sc_member:esc_incidents_highreach"], 5), "\\n")
-
-# Test if interaction is significant
-cat("\\nInteraction coefficient:",
-    round(coef(ols_interact)["cdp_sc_member:esc_incidents_highreach"], 5),
-    ", p =", round(summary(ols_interact)$coeftable["cdp_sc_member:esc_incidents_highreach", "Pr(>|t|)"], 4), "\\n\\n")
-
-results_list$ols_interact_highreach <- list(
-  model = "OLS-Interact",
+results_list$lpm_highreach <- list(
+  model = "LPM-IV",
   incident_measure = "highreach",
-  cdp_coef = coef(ols_interact)["cdp_sc_member"],
-  cdp_p = summary(ols_interact)$coeftable["cdp_sc_member", "Pr(>|t|)"],
-  incident_coef = coef(ols_interact)["esc_incidents_highreach"],
-  incident_p = summary(ols_interact)$coeftable["esc_incidents_highreach", "Pr(>|t|)"],
-  interaction_coef = coef(ols_interact)["cdp_sc_member:esc_incidents_highreach"],
-  interaction_p = summary(ols_interact)$coeftable["cdp_sc_member:esc_incidents_highreach", "Pr(>|t|)"]
+  cdp_coef = coef(lpm_highreach)["cdp_sc_member"],
+  cdp_se = se(lpm_highreach)["cdp_sc_member"],
+  cdp_p = pvalue(lpm_highreach)["cdp_sc_member"],
+  incident_coef = coef(lpm_highreach)["esc_incidents_highreach"],
+  incident_se = se(lpm_highreach)["esc_incidents_highreach"],
+  incident_p = pvalue(lpm_highreach)["esc_incidents_highreach"],
+  cf_resid_p = pvalue(lpm_highreach)["fs_resid"],
+  nobs = lpm_highreach$nobs
 )
 
-# Model 3.2: IV-Probit with Interaction ####
-cat("--- Model 3.2: IV-Probit with CDP SC × Incidents interaction ---\\n\\n")
+# Model 1.2: High Severity Incidents ####
+cat("--- Model 1.2: LPM-IV with esc_incidents_highsev ---\n\n")
 
-probit_interact <- feglm(
+lpm_highsev <- feols(
+  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + esc_incidents_highsev +
+    e_disc_coalesced_zeros + e_disc_missing +
+    log(scope1_zeros + 1) + scope1_missing +
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
+  cluster = ~ gvkey,
+  data = data_complete
+)
+
+cat("Results:\n")
+cat("  CDP SC coefficient:", round(coef(lpm_highsev)["cdp_sc_member"], 4),
+    ", SE:", round(se(lpm_highsev)["cdp_sc_member"], 4),
+    ", p:", round(pvalue(lpm_highsev)["cdp_sc_member"], 4), "\n")
+cat("  Incidents coefficient:", round(coef(lpm_highsev)["esc_incidents_highsev"], 4),
+    ", SE:", round(se(lpm_highsev)["esc_incidents_highsev"], 4),
+    ", p:", round(pvalue(lpm_highsev)["esc_incidents_highsev"], 4), "\n")
+cat("  Control function (fs_resid):", round(coef(lpm_highsev)["fs_resid"], 4),
+    ", p:", round(pvalue(lpm_highsev)["fs_resid"], 4), "\n\n")
+
+results_list$lpm_highsev <- list(
+  model = "LPM-IV",
+  incident_measure = "highsev",
+  cdp_coef = coef(lpm_highsev)["cdp_sc_member"],
+  cdp_se = se(lpm_highsev)["cdp_sc_member"],
+  cdp_p = pvalue(lpm_highsev)["cdp_sc_member"],
+  incident_coef = coef(lpm_highsev)["esc_incidents_highsev"],
+  incident_se = se(lpm_highsev)["esc_incidents_highsev"],
+  incident_p = pvalue(lpm_highsev)["esc_incidents_highsev"],
+  cf_resid_p = pvalue(lpm_highsev)["fs_resid"],
+  nobs = lpm_highsev$nobs
+)
+
+# Model 1.3: All Incidents ####
+cat("--- Model 1.3: LPM-IV with esc_incidents (all) ---\n\n")
+
+lpm_all <- feols(
+  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + esc_incidents +
+    e_disc_coalesced_zeros + e_disc_missing +
+    log(scope1_zeros + 1) + scope1_missing +
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
+  cluster = ~ gvkey,
+  data = data_complete
+)
+
+cat("Results:\n")
+cat("  CDP SC coefficient:", round(coef(lpm_all)["cdp_sc_member"], 4),
+    ", SE:", round(se(lpm_all)["cdp_sc_member"], 4),
+    ", p:", round(pvalue(lpm_all)["cdp_sc_member"], 4), "\n")
+cat("  Incidents coefficient:", round(coef(lpm_all)["esc_incidents"], 4),
+    ", SE:", round(se(lpm_all)["esc_incidents"], 4),
+    ", p:", round(pvalue(lpm_all)["esc_incidents"], 4), "\n")
+cat("  Control function (fs_resid):", round(coef(lpm_all)["fs_resid"], 4),
+    ", p:", round(pvalue(lpm_all)["fs_resid"], 4), "\n\n")
+
+results_list$lpm_all <- list(
+  model = "LPM-IV",
+  incident_measure = "all",
+  cdp_coef = coef(lpm_all)["cdp_sc_member"],
+  cdp_se = se(lpm_all)["cdp_sc_member"],
+  cdp_p = pvalue(lpm_all)["cdp_sc_member"],
+  incident_coef = coef(lpm_all)["esc_incidents"],
+  incident_se = se(lpm_all)["esc_incidents"],
+  incident_p = pvalue(lpm_all)["esc_incidents"],
+  cf_resid_p = pvalue(lpm_all)["fs_resid"],
+  nobs = lpm_all$nobs
+)
+
+################################################################################
+# PHASE 2: TRANSFORMATIONS
+################################################################################
+
+cat("\n" %+% strrep("=", 80) %+% "\n")
+cat("PHASE 2: ALTERNATIVE TRANSFORMATIONS\n")
+cat(strrep("=", 80) %+% "\n\n")
+
+cat("Motivation: Test sensitivity to functional form\n")
+cat("Testing: Log transformation, binary indicator\n\n")
+
+# Model 2.1: Log Transformation ####
+cat("--- Model 2.1: LPM-IV with log(esc_incidents_highreach + 1) ---\n\n")
+
+data_complete$log_incidents_highreach <- log(data_complete$esc_incidents_highreach + 1)
+
+lpm_log <- feols(
+  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + log_incidents_highreach +
+    e_disc_coalesced_zeros + e_disc_missing +
+    log(scope1_zeros + 1) + scope1_missing +
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
+  cluster = ~ gvkey,
+  data = data_complete
+)
+
+cat("Results:\n")
+cat("  CDP SC coefficient:", round(coef(lpm_log)["cdp_sc_member"], 4),
+    ", SE:", round(se(lpm_log)["cdp_sc_member"], 4),
+    ", p:", round(pvalue(lpm_log)["cdp_sc_member"], 4), "\n")
+cat("  Log incidents coefficient:", round(coef(lpm_log)["log_incidents_highreach"], 4),
+    ", SE:", round(se(lpm_log)["log_incidents_highreach"], 4),
+    ", p:", round(pvalue(lpm_log)["log_incidents_highreach"], 4), "\n\n")
+
+results_list$lpm_log <- list(
+  model = "LPM-IV",
+  incident_measure = "log_highreach",
+  cdp_coef = coef(lpm_log)["cdp_sc_member"],
+  cdp_se = se(lpm_log)["cdp_sc_member"],
+  cdp_p = pvalue(lpm_log)["cdp_sc_member"],
+  incident_coef = coef(lpm_log)["log_incidents_highreach"],
+  incident_se = se(lpm_log)["log_incidents_highreach"],
+  incident_p = pvalue(lpm_log)["log_incidents_highreach"],
+  cf_resid_p = pvalue(lpm_log)["fs_resid"],
+  nobs = lpm_log$nobs
+)
+
+# Model 2.2: Binary Indicator ####
+cat("--- Model 2.2: LPM-IV with any_incident_highreach (binary) ---\n\n")
+
+data_complete$any_incident_highreach <- as.numeric(data_complete$esc_incidents_highreach > 0)
+
+lpm_binary <- feols(
+  sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + any_incident_highreach +
+    e_disc_coalesced_zeros + e_disc_missing +
+    log(scope1_zeros + 1) + scope1_missing +
+    roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
+    headquarter_country + year,
+  cluster = ~ gvkey,
+  data = data_complete
+)
+
+cat("Results:\n")
+cat("  CDP SC coefficient:", round(coef(lpm_binary)["cdp_sc_member"], 4),
+    ", SE:", round(se(lpm_binary)["cdp_sc_member"], 4),
+    ", p:", round(pvalue(lpm_binary)["cdp_sc_member"], 4), "\n")
+cat("  Binary incident coefficient:", round(coef(lpm_binary)["any_incident_highreach"], 4),
+    ", SE:", round(se(lpm_binary)["any_incident_highreach"], 4),
+    ", p:", round(pvalue(lpm_binary)["any_incident_highreach"], 4), "\n\n")
+
+results_list$lpm_binary <- list(
+  model = "LPM-IV",
+  incident_measure = "binary_highreach",
+  cdp_coef = coef(lpm_binary)["cdp_sc_member"],
+  cdp_se = se(lpm_binary)["cdp_sc_member"],
+  cdp_p = pvalue(lpm_binary)["cdp_sc_member"],
+  incident_coef = coef(lpm_binary)["any_incident_highreach"],
+  incident_se = se(lpm_binary)["any_incident_highreach"],
+  incident_p = pvalue(lpm_binary)["any_incident_highreach"],
+  cf_resid_p = pvalue(lpm_binary)["fs_resid"],
+  nobs = lpm_binary$nobs
+)
+
+################################################################################
+# PHASE 3: INTERACTION EFFECTS (KEY TEST FOR H3)
+################################################################################
+
+cat("\n" %+% strrep("=", 80) %+% "\n")
+cat("PHASE 3: INTERACTION EFFECTS - COMPLEMENTARITY TEST\n")
+cat(strrep("=", 80) %+% "\n\n")
+
+cat("Motivation: Test H3 - Do incidents matter MORE when CDP SC capability exists?\n")
+cat("Theoretical prediction: Positive interaction (complementarity)\n\n")
+
+# Model 3.1: Interaction with High Reach Incidents ####
+cat("--- Model 3.1: LPM-IV with CDP SC × High Reach Incidents ---\n\n")
+
+lpm_interact_highreach <- feols(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + esc_incidents_highreach +
     cdp_sc_member:esc_incidents_highreach +
     e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
     headquarter_country + year,
-  family = binomial(link = "probit"),
   cluster = ~ gvkey,
   data = data_complete
 )
 
-# Marginal effects conditional on CDP membership
-marg_interact_cdp0 <- margins(probit_interact,
-                               at = list(cdp_sc_member = 0),
-                               variables = "esc_incidents_highreach")
+cat("Results:\n")
+cat("  CDP SC (main effect):", round(coef(lpm_interact_highreach)["cdp_sc_member"], 4),
+    ", p:", round(pvalue(lpm_interact_highreach)["cdp_sc_member"], 4), "\n")
+cat("  Incidents (main effect):", round(coef(lpm_interact_highreach)["esc_incidents_highreach"], 4),
+    ", p:", round(pvalue(lpm_interact_highreach)["esc_incidents_highreach"], 4), "\n")
+cat("  INTERACTION:", round(coef(lpm_interact_highreach)["cdp_sc_member:esc_incidents_highreach"], 4),
+    ", p:", round(pvalue(lpm_interact_highreach)["cdp_sc_member:esc_incidents_highreach"], 4), "\n")
 
-marg_interact_cdp1 <- margins(probit_interact,
-                               at = list(cdp_sc_member = 1),
-                               variables = "esc_incidents_highreach")
+# Interpretation guidance
+if (pvalue(lpm_interact_highreach)["cdp_sc_member:esc_incidents_highreach"] < 0.05) {
+  if (coef(lpm_interact_highreach)["cdp_sc_member:esc_incidents_highreach"] > 0) {
+    cat("\n** INTERPRETATION: Positive, significant interaction - SUPPORTS H3 **\n")
+    cat("   Incidents increase SBTi commitment MORE when firm has CDP SC membership\n")
+    cat("   This suggests COMPLEMENTARITY between internal and external interventions\n\n")
+  } else {
+    cat("\n** INTERPRETATION: Negative, significant interaction - CONTRADICTS H3 **\n")
+    cat("   Incidents increase SBTi commitment LESS when firm has CDP SC membership\n")
+    cat("   This suggests SUBSTITUTION, not complementarity\n\n")
+  }
+} else {
+  cat("\n** INTERPRETATION: Non-significant interaction - NO EVIDENCE for H3 **\n")
+  cat("   Effect of incidents does not depend on CDP SC membership\n")
+  cat("   Internal and external interventions operate independently\n\n")
+}
 
-cat("Marginal Effect of Incidents when CDP SC = 0:\\n")
-print(summary(marg_interact_cdp0), digits = 4)
-
-cat("\\nMarginal Effect of Incidents when CDP SC = 1:\\n")
-print(summary(marg_interact_cdp1), digits = 4)
-
-results_list$probit_interact_highreach <- list(
-  model = "IV-Probit-Interact",
+results_list$lpm_interact_highreach <- list(
+  model = "LPM-IV-Interact",
   incident_measure = "highreach",
-  incident_ame_cdp0 = summary(marg_interact_cdp0)$AME,
-  incident_p_cdp0 = summary(marg_interact_cdp0)$p,
-  incident_ame_cdp1 = summary(marg_interact_cdp1)$AME,
-  incident_p_cdp1 = summary(marg_interact_cdp1)$p
+  cdp_coef = coef(lpm_interact_highreach)["cdp_sc_member"],
+  cdp_se = se(lpm_interact_highreach)["cdp_sc_member"],
+  cdp_p = pvalue(lpm_interact_highreach)["cdp_sc_member"],
+  incident_coef = coef(lpm_interact_highreach)["esc_incidents_highreach"],
+  incident_se = se(lpm_interact_highreach)["esc_incidents_highreach"],
+  incident_p = pvalue(lpm_interact_highreach)["esc_incidents_highreach"],
+  interaction_coef = coef(lpm_interact_highreach)["cdp_sc_member:esc_incidents_highreach"],
+  interaction_se = se(lpm_interact_highreach)["cdp_sc_member:esc_incidents_highreach"],
+  interaction_p = pvalue(lpm_interact_highreach)["cdp_sc_member:esc_incidents_highreach"],
+  cf_resid_p = pvalue(lpm_interact_highreach)["fs_resid"],
+  nobs = lpm_interact_highreach$nobs
 )
 
-cat("\\n")
+# Model 3.2: Interaction with High Severity Incidents ####
+cat("--- Model 3.2: LPM-IV with CDP SC × High Severity Incidents ---\n\n")
 
-# Model 3.3: Test All Incident Measures with Interaction ####
-cat("--- Model 3.3: Interactions with alternative incident measures ---\\n\\n")
-
-# High severity
-probit_interact_highsev <- feglm(
+lpm_interact_highsev <- feols(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + esc_incidents_highsev +
     cdp_sc_member:esc_incidents_highsev +
     e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
     headquarter_country + year,
-  family = binomial(link = "probit"),
   cluster = ~ gvkey,
   data = data_complete
 )
 
-cat("High Severity Interaction Coefficient:\\n")
-cat("  β(interaction) =", round(coef(probit_interact_highsev)["cdp_sc_member:esc_incidents_highsev"], 5),
-    ", p =", round(summary(probit_interact_highsev)$coefficients["cdp_sc_member:esc_incidents_highsev", "Pr(>|z|)"], 4), "\\n\\n")
+cat("Results:\n")
+cat("  INTERACTION:", round(coef(lpm_interact_highsev)["cdp_sc_member:esc_incidents_highsev"], 4),
+    ", p:", round(pvalue(lpm_interact_highsev)["cdp_sc_member:esc_incidents_highsev"], 4), "\n\n")
 
-# All incidents
-probit_interact_all <- feglm(
+results_list$lpm_interact_highsev <- list(
+  model = "LPM-IV-Interact",
+  incident_measure = "highsev",
+  interaction_coef = coef(lpm_interact_highsev)["cdp_sc_member:esc_incidents_highsev"],
+  interaction_se = se(lpm_interact_highsev)["cdp_sc_member:esc_incidents_highsev"],
+  interaction_p = pvalue(lpm_interact_highsev)["cdp_sc_member:esc_incidents_highsev"],
+  nobs = lpm_interact_highsev$nobs
+)
+
+# Model 3.3: Interaction with All Incidents ####
+cat("--- Model 3.3: LPM-IV with CDP SC × All Incidents ---\n\n")
+
+lpm_interact_all <- feols(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + esc_incidents +
     cdp_sc_member:esc_incidents +
     e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
     headquarter_country + year,
-  family = binomial(link = "probit"),
   cluster = ~ gvkey,
   data = data_complete
 )
 
-cat("All Incidents Interaction Coefficient:\\n")
-cat("  β(interaction) =", round(coef(probit_interact_all)["cdp_sc_member:esc_incidents"], 5),
-    ", p =", round(summary(probit_interact_all)$coefficients["cdp_sc_member:esc_incidents", "Pr(>|z|)"], 4), "\\n\\n")
+cat("Results:\n")
+cat("  INTERACTION:", round(coef(lpm_interact_all)["cdp_sc_member:esc_incidents"], 4),
+    ", p:", round(pvalue(lpm_interact_all)["cdp_sc_member:esc_incidents"], 4), "\n\n")
 
-# Binary
-probit_interact_binary <- feglm(
+results_list$lpm_interact_all <- list(
+  model = "LPM-IV-Interact",
+  incident_measure = "all",
+  interaction_coef = coef(lpm_interact_all)["cdp_sc_member:esc_incidents"],
+  interaction_se = se(lpm_interact_all)["cdp_sc_member:esc_incidents"],
+  interaction_p = pvalue(lpm_interact_all)["cdp_sc_member:esc_incidents"],
+  nobs = lpm_interact_all$nobs
+)
+
+# Model 3.4: Interaction with Binary Indicator ####
+cat("--- Model 3.4: LPM-IV with CDP SC × Any Incident (binary) ---\n\n")
+
+lpm_interact_binary <- feols(
   sbti_commitment_lead1 ~ cdp_sc_member + fs_resid + any_incident_highreach +
     cdp_sc_member:any_incident_highreach +
     e_disc_coalesced_zeros + e_disc_missing +
     log(scope1_zeros + 1) + scope1_missing +
     roa_oibdp_w1_at_w1 + at_usd_winsorized_1_log + tll_lt_w1_at_w1 |
     headquarter_country + year,
-  family = binomial(link = "probit"),
   cluster = ~ gvkey,
   data = data_complete
 )
 
-cat("Binary Indicator Interaction Coefficient:\\n")
-cat("  β(interaction) =", round(coef(probit_interact_binary)["cdp_sc_member:any_incident_highreach"], 5),
-    ", p =", round(summary(probit_interact_binary)$coefficients["cdp_sc_member:any_incident_highreach", "Pr(>|z|)"], 4), "\\n\\n")
+cat("Results:\n")
+cat("  INTERACTION:", round(coef(lpm_interact_binary)["cdp_sc_member:any_incident_highreach"], 4),
+    ", p:", round(pvalue(lpm_interact_binary)["cdp_sc_member:any_incident_highreach"], 4), "\n\n")
 
-################################################################################
-# RESULTS SUMMARY TABLE
-################################################################################
-
-cat("\\n" %+% strrep("=", 80) %+% "\\n")
-cat("RESULTS SUMMARY\\n")
-cat(strrep("=", 80) %+% "\\n\\n")
-
-# Create comparison table
-results_df <- data.frame(
-  Model = character(),
-  Incident_Measure = character(),
-  CDP_Effect = numeric(),
-  CDP_pval = numeric(),
-  Incident_Effect = numeric(),
-  Incident_pval = numeric(),
-  Interaction_Effect = numeric(),
-  Interaction_pval = numeric(),
-  stringsAsFactors = FALSE
+results_list$lpm_interact_binary <- list(
+  model = "LPM-IV-Interact",
+  incident_measure = "binary",
+  interaction_coef = coef(lpm_interact_binary)["cdp_sc_member:any_incident_highreach"],
+  interaction_se = se(lpm_interact_binary)["cdp_sc_member:any_incident_highreach"],
+  interaction_p = pvalue(lpm_interact_binary)["cdp_sc_member:any_incident_highreach"],
+  nobs = lpm_interact_binary$nobs
 )
 
-# Populate with results
-for (i in seq_along(results_list)) {
-  res <- results_list[[i]]
-  results_df <- rbind(results_df, data.frame(
-    Model = res$model,
-    Incident_Measure = res$incident_measure,
-    CDP_Effect = ifelse(is.null(res$cdp_ame), res$cdp_coef, res$cdp_ame),
-    CDP_pval = res$cdp_p,
-    Incident_Effect = ifelse(is.null(res$incident_ame), res$incident_coef, res$incident_ame),
-    Incident_pval = res$incident_p,
-    Interaction_Effect = ifelse(is.null(res$interaction_coef), NA, res$interaction_coef),
-    Interaction_pval = ifelse(is.null(res$interaction_p), NA, res$interaction_p)
-  ))
-}
+################################################################################
+# SUMMARY TABLE
+################################################################################
 
-cat("\\nCOMPREHENSIVE RESULTS TABLE:\\n\\n")
-print(results_df, digits = 4)
+cat("\n" %+% strrep("=", 80) %+% "\n")
+cat("SUMMARY OF RESULTS\n")
+cat(strrep("=", 80) %+% "\n\n")
 
-# Export to CSV
-write.csv(results_df, "results_comprehensive_robustness.csv", row.names = FALSE)
-cat("\\nResults exported to: results_comprehensive_robustness.csv\\n")
+# Convert results to data frame for easy viewing
+results_df <- bind_rows(results_list, .id = "specification")
 
-# Identify best specifications ####
-cat("\\n" %+% strrep("=", 80) %+% "\\n")
-cat("KEY FINDINGS\\n")
-cat(strrep("=", 80) %+% "\\n\\n")
+# Create summary table
+summary_table <- results_df %>%
+  select(specification, incident_measure,
+         cdp_coef, cdp_p, incident_coef, incident_p,
+         interaction_coef, interaction_p, nobs) %>%
+  mutate(
+    cdp_sig = case_when(
+      is.na(cdp_p) ~ "",
+      cdp_p < 0.01 ~ "***",
+      cdp_p < 0.05 ~ "**",
+      cdp_p < 0.10 ~ "*",
+      TRUE ~ ""
+    ),
+    incident_sig = case_when(
+      is.na(incident_p) ~ "",
+      incident_p < 0.01 ~ "***",
+      incident_p < 0.05 ~ "**",
+      incident_p < 0.10 ~ "*",
+      TRUE ~ ""
+    ),
+    interaction_sig = case_when(
+      is.na(interaction_p) ~ "",
+      interaction_p < 0.01 ~ "***",
+      interaction_p < 0.05 ~ "**",
+      interaction_p < 0.10 ~ "*",
+      TRUE ~ ""
+    )
+  )
 
-# H1 support
-cat("H1 (Internal Intervention - CDP SC):\\n")
-h1_support <- results_df[results_df$CDP_pval < 0.05, ]
-cat("  Supported in", nrow(h1_support), "out of", nrow(results_df), "specifications\\n")
-cat("  Effect range:", round(min(h1_support$CDP_Effect, na.rm = TRUE), 4), "to",
-    round(max(h1_support$CDP_Effect, na.rm = TRUE), 4), "\\n\\n")
+cat("Key Findings:\n\n")
+cat("1. CDP SC Effect (H1):\n")
+cat("   Range: [",
+    round(min(summary_table$cdp_coef, na.rm = TRUE), 4), ",",
+    round(max(summary_table$cdp_coef, na.rm = TRUE), 4), "]\n")
+cat("   Significant in", sum(summary_table$cdp_p < 0.05, na.rm = TRUE), "of",
+    sum(!is.na(summary_table$cdp_coef)), "specifications\n\n")
 
-# H2 direct support
-cat("H2 (External Intervention - Incidents, Direct Effect):\\n")
-h2_direct <- results_df[!is.na(results_df$Incident_pval) & results_df$Incident_pval < 0.05, ]
-if (nrow(h2_direct) > 0) {
-  cat("  Supported in", nrow(h2_direct), "specifications:\\n")
-  print(h2_direct[, c("Model", "Incident_Measure", "Incident_Effect", "Incident_pval")])
-} else {
-  cat("  NOT supported in direct effects\\n")
-}
-cat("\\n")
+cat("2. Incidents Effect (H2):\n")
+cat("   Range: [",
+    round(min(summary_table$incident_coef, na.rm = TRUE), 4), ",",
+    round(max(summary_table$incident_coef, na.rm = TRUE), 4), "]\n")
+cat("   Significant in", sum(summary_table$incident_p < 0.05, na.rm = TRUE), "of",
+    sum(!is.na(summary_table$incident_coef)), "specifications\n\n")
 
-# H2 interaction support
-cat("H2 (External Intervention - Incidents, Interaction Effect):\\n")
-h2_interact <- results_df[!is.na(results_df$Interaction_pval) & results_df$Interaction_pval < 0.05, ]
-if (nrow(h2_interact) > 0) {
-  cat("  ✓ Interaction SIGNIFICANT in", nrow(h2_interact), "specifications:\\n")
-  print(h2_interact[, c("Model", "Incident_Measure", "Interaction_Effect", "Interaction_pval")])
-  cat("\\n  INTERPRETATION: External interventions matter MORE when internal capability exists\\n")
-  cat("  This is your H2 story - complementarity, not independence\\n")
-} else {
-  cat("  Interaction NOT significant\\n")
-}
-cat("\\n")
+cat("3. Interaction Effect (H3 - COMPLEMENTARITY):\n")
+cat("   Range: [",
+    round(min(summary_table$interaction_coef, na.rm = TRUE), 4), ",",
+    round(max(summary_table$interaction_coef, na.rm = TRUE), 4), "]\n")
+cat("   Significant in", sum(summary_table$interaction_p < 0.05, na.rm = TRUE), "of",
+    sum(!is.na(summary_table$interaction_coef)), "specifications\n")
+cat("   Positive in", sum(summary_table$interaction_coef > 0, na.rm = TRUE), "of",
+    sum(!is.na(summary_table$interaction_coef)), "specifications\n\n")
 
-# Recommendation ####
-cat(strrep("=", 80) %+% "\\n")
-cat("RECOMMENDATION FOR MANUSCRIPT\\n")
-cat(strrep("=", 80) %+% "\\n\\n")
+# Save results
+write.csv(summary_table, "results_comprehensive_robustness_lpm.csv", row.names = FALSE)
+cat("Results saved to: results_comprehensive_robustness_lpm.csv\n\n")
 
-if (nrow(h2_interact) > 0) {
-  cat("✓✓✓ SUCCESS ✓✓✓\\n\\n")
-  cat("Both H1 and H2 supported through complementarity mechanism:\\n")
-  cat("  - H1: Internal intervention (CDP SC) directly increases SBTi\\n")
-  cat("  - H2: External intervention (incidents) amplifies effect when internal capability exists\\n\\n")
-  cat("Frame as: Both pathways drive SBTi through risk awareness, but are complementary\\n")
-  cat("Use interaction models as primary specification for H2\\n")
-} else if (nrow(h2_direct) > 0) {
-  cat("✓ PARTIAL SUCCESS ✓\\n\\n")
-  cat("Both H1 and H2 supported through direct effects:\\n")
-  cat("  - H1: Internal intervention significant\\n")
-  cat("  - H2: External intervention significant in specific measures\\n\\n")
-  cat("Use best-performing incident measure for manuscript\\n")
-} else {
-  cat("⚠ H1 ONLY ⚠\\n\\n")
-  cat("H1 strongly supported, H2 not supported\\n")
-  cat("Options:\\n")
-  cat("  1. Focus manuscript on internal interventions (H1 only)\\n")
-  cat("  2. Report H2 as null finding with discussion of why\\n")
-  cat("  3. Test additional specifications (subsamples, mediation)\\n")
-}
-
-cat("\\n" %+% strrep("=", 80) %+% "\\n")
-cat("ANALYSIS COMPLETE\\n")
-cat(strrep("=", 80) %+% "\\n")
+cat("=" %+% strrep("=", 79) %+% "\n")
+cat("ANALYSIS COMPLETE\n")
+cat("=" %+% strrep("=", 79) %+% "\n\n")
