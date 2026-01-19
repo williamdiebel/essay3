@@ -67,32 +67,40 @@ cat(strrep("=", 80) %+% "\\n\\n")
 cat("Motivation: LPM inappropriate for rare events (2-3% baseline)\\n")
 cat("Testing: Probit, Logit, Cloglog with control function approach\\n\\n")
 
-# First-stage for control function ####
+# Identify complete cases for all variables needed ####
+cat("Identifying complete cases for all variables needed...\\n")
+cat("  Original observations:", nrow(data), "\\n")
+
+# Variables needed for analysis
+vars_needed <- c("sbti_commitment_lead1", "cdp_sc_member", "peer_cdp_share_country_lag",
+                 "esc_incidents_highreach", "esc_incidents_highsev", "esc_incidents",
+                 "e_disc_coalesced_zeros", "e_disc_missing",
+                 "scope1_zeros", "scope1_missing",
+                 "roa_oibdp_w1_at_w1", "at_usd_winsorized_1_log", "tll_lt_w1_at_w1",
+                 "headquarter_country", "FourDigitName", "year", "gvkey")
+
+# Filter to complete cases
+data_complete <- data[complete.cases(data[, ..vars_needed]), ]
+
+cat("  Complete-case observations:", nrow(data_complete), "\\n")
+cat("  Observations dropped:", nrow(data) - nrow(data_complete), "\\n")
+cat("  Retention rate:", round(nrow(data_complete) / nrow(data) * 100, 1), "%\\n\\n")
+
+# First-stage for control function (on complete data) ####
 cat("Running first-stage regression for control function...\\n")
 
 first_stage <- feols(
   as.formula(paste("cdp_sc_member ~ peer_cdp_share_country_lag +",
                    controls_formula, "| headquarter_country + year")),
   cluster = ~ gvkey,
-  data = data
+  data = data_complete
 )
 
 cat("  First-stage F-statistic:",
-    round(coeftable(first_stage)["peer_cdp_share_country_lag", "t value"]^2, 2), "\\n")
-
-# Filter to complete cases (observations used by first_stage) ####
-cat("  Filtering to complete cases used by first-stage model...\\n")
-cat("    Original observations:", nrow(data), "\\n")
-
-# Get the observations actually used in first_stage
-data_complete <- data[first_stage$obs_selection$obsRemoved == FALSE, ]
+    round(coeftable(first_stage)["peer_cdp_share_country_lag", "t value"]^2, 2), "\\n\\n")
 
 # Add residuals to complete data
 data_complete$fs_resid <- residuals(first_stage)
-
-cat("    Complete-case observations:", nrow(data_complete), "\\n")
-cat("    Observations dropped:", nrow(data) - nrow(data_complete), "\\n")
-cat("    Retention rate:", round(nrow(data_complete) / nrow(data) * 100, 1), "%\\n\\n")
 
 # Convert to regular data.frame for glm functions
 data_complete_df <- as.data.frame(data_complete)
