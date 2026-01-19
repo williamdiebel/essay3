@@ -99,18 +99,22 @@ first_stage <- feols(
 cat("  First-stage F-statistic:",
     round(coeftable(first_stage)["peer_cdp_share_country_lag", "t value"]^2, 2), "\\n")
 
-# Handle feols singleton removal by matching residuals to rows
-# Initialize fs_resid as NA for all rows
-data_complete$fs_resid <- NA_real_
+# Handle feols singleton removal with merge approach
+# Add sequential row index to data_complete
+data_complete[, row_idx := .I]
 
-# Get the row numbers that feols actually used (from residual names)
-used_row_indices <- as.numeric(names(residuals(first_stage)))
+# Create data frame with residuals and their corresponding row indices
+fs_data <- data.frame(
+  row_idx = as.numeric(names(residuals(first_stage))),
+  fs_resid = as.numeric(residuals(first_stage))
+)
 
-# Assign residuals to the corresponding rows
-data_complete$fs_resid[used_row_indices] <- residuals(first_stage)
+# Merge to keep only observations used by feols
+# Using all.x=FALSE ensures we only keep rows that have residuals
+data_complete <- merge(data_complete, fs_data, by = "row_idx", all.x = FALSE)
 
-# Filter to only rows with non-NA residuals (i.e., rows feols actually used)
-data_complete <- data_complete[!is.na(fs_resid)]
+# Remove the row_idx column as it's no longer needed
+data_complete[, row_idx := NULL]
 
 cat("  Final sample after singleton removal:", nrow(data_complete), "observations\\n\\n")
 
