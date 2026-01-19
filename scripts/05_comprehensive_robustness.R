@@ -87,18 +87,24 @@ cat("  Observations dropped:", nrow(data) - nrow(data_complete), "\\n")
 cat("  Retention rate:", round(nrow(data_complete) / nrow(data) * 100, 1), "%\\n\\n")
 
 # Identify and remove singletons manually ####
-cat("Identifying fixed effect singletons (country-year combinations with only 1 obs)...\\n")
+cat("Identifying problematic fixed effect groups...\\n")
 
-# Count observations per FE group
+# Step 1: Remove FE groups with only 1 observation
 data_complete[, fe_group_size := .N, by = .(headquarter_country, year)]
-
-cat("  Observations in singleton FE groups:", sum(data_complete$fe_group_size == 1), "\\n")
-
-# Remove singletons
+cat("  Singleton FE groups (n=1):", sum(data_complete$fe_group_size == 1), "obs\\n")
 data_complete <- data_complete[fe_group_size > 1]
-data_complete[, fe_group_size := NULL]  # Remove temporary column
 
-cat("  Observations after removing singletons:", nrow(data_complete), "\\n\\n")
+# Step 2: Remove FE groups with no outcome variation (all 0s or all 1s)
+# This is required for binary outcome models with FE
+data_complete[, outcome_var := var(sbti_commitment_lead1), by = .(headquarter_country, year)]
+cat("  FE groups with no outcome variation:",
+    sum(is.na(data_complete$outcome_var) | data_complete$outcome_var == 0), "obs\\n")
+data_complete <- data_complete[!is.na(outcome_var) & outcome_var > 0]
+
+# Clean up temporary columns
+data_complete[, c("fe_group_size", "outcome_var") := NULL]
+
+cat("  Observations after removing problematic FE groups:", nrow(data_complete), "\\n\\n")
 
 # First-stage with FE (methodologically rigorous) ####
 cat("Running first-stage regression with fixed effects for control function...\\n")
