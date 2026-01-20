@@ -72,7 +72,8 @@ data[, `:=`(
 
 # Variables needed for analysis
 vars_needed <- c("sbti_commitment_lead1", "cdp_sc_member",
-                 "peer_cdp_share_country_lag", "e_disc_lag2", "industry_incidents_excl_lag",
+                 "peer_cdp_share_lag", "peer_cdp_share_country_lag",
+                 "peer_cdp_share_industry_exclcountry_lag", "peer_cdp_share_country_excludindustry_lag",
                  "esc_incidents_highreach", "esc_incidents_highsev", "esc_incidents",
                  "e_disc_coalesced_zeros", "e_disc_missing",
                  "scope1_zeros", "scope1_missing",
@@ -107,7 +108,7 @@ cat("SYSTEMATIC SPECIFICATION GRID\n")
 cat(strrep("=", 80) %+% "\n\n")
 
 cat("Testing combinations of:\n")
-cat("  - Instruments: peer_cdp, e_disc, industry_inc, pairs, all three\n")
+cat("  - Instruments: peer_cdp_country, peer_cdp_industry, orthogonalized pair, combinations\n")
 cat("  - Methods: 2SLS, Control Function\n")
 cat("  - Incidents: highreach (baseline)\n\n")
 
@@ -217,33 +218,33 @@ results_grid[[spec_counter]] <- list(
 spec_counter <- spec_counter + 1
 
 ################################################################################
-# INSTRUMENT 2: e_disc_lag2 ONLY
+# INSTRUMENT 2: peer_cdp_share_lag (Industry-level) ONLY
 ################################################################################
 
 cat("=" %+% strrep("=", 79) %+% "\n")
-cat("INSTRUMENT 2: e_disc_lag2 (ONLY)\n")
+cat("INSTRUMENT 2: peer_cdp_share_lag (Industry-level ONLY)\n")
 cat("=" %+% strrep("=", 79) %+% "\n\n")
 
 # First-stage
 fs2 <- feols(
-  as.formula(paste("cdp_sc_member ~ e_disc_lag2 +",
+  as.formula(paste("cdp_sc_member ~ peer_cdp_share_lag +",
                    controls_formula, "| headquarter_country + year")),
   cluster = ~ gvkey,
   data = data_complete
 )
 
-fs2_f <- coeftable(fs2)["e_disc_lag2", "t value"]^2
+fs2_f <- coeftable(fs2)["peer_cdp_share_lag", "t value"]^2
 cat("First-stage F-statistic:", round(fs2_f, 2), "\n")
 
 # Reduced form
 rf2 <- feols(
-  as.formula(paste("sbti_commitment_lead1 ~ e_disc_lag2 + esc_incidents_highreach +",
+  as.formula(paste("sbti_commitment_lead1 ~ peer_cdp_share_lag + esc_incidents_highreach +",
                    controls_formula, "| headquarter_country + year")),
   cluster = ~ gvkey,
   data = data_complete
 )
 
-rf2_coef <- coef(rf2)["e_disc_lag2"]
+rf2_coef <- coef(rf2)["peer_cdp_share_lag"]
 cat("Reduced form coefficient:", round(rf2_coef, 4), "\n\n")
 
 # Method A: 2SLS
@@ -252,7 +253,7 @@ tsls2 <- feols(
   as.formula(paste("sbti_commitment_lead1 ~ esc_incidents_highreach +",
                    controls_formula,
                    "| headquarter_country + year",
-                   "| cdp_sc_member ~ e_disc_lag2")),
+                   "| cdp_sc_member ~ peer_cdp_share_lag")),
   cluster = ~ gvkey,
   data = data_complete
 )
@@ -266,7 +267,7 @@ cat("Incidents:", round(coef(tsls2)["esc_incidents_highreach"], 4),
 
 results_grid[[spec_counter]] <- list(
   spec = "2A",
-  instruments = "e_disc_lag2",
+  instruments = "peer_cdp_industry",
   method = "2SLS",
   fs_f = fs2_f,
   rf_coef = rf2_coef,
@@ -302,7 +303,7 @@ cat("Control fn:", round(coef(cf2)["fs_resid2"], 4), ", p =",
 
 results_grid[[spec_counter]] <- list(
   spec = "2B",
-  instruments = "e_disc_lag2",
+  instruments = "peer_cdp_industry",
   method = "CF",
   fs_f = fs2_f,
   rf_coef = rf2_coef,
@@ -318,34 +319,36 @@ results_grid[[spec_counter]] <- list(
 spec_counter <- spec_counter + 1
 
 ################################################################################
-# INSTRUMENT 3: industry_incidents_excl_lag ONLY
+# INSTRUMENT 3: Orthogonalized Pair (industry excl country + country excl industry)
 ################################################################################
 
 cat("=" %+% strrep("=", 79) %+% "\n")
-cat("INSTRUMENT 3: industry_incidents_excl_lag (ONLY)\n")
+cat("INSTRUMENT 3: Orthogonalized Pair (industry excl country + country excl industry)\n")
 cat("=" %+% strrep("=", 79) %+% "\n\n")
 
 # First-stage
 fs3 <- feols(
-  as.formula(paste("cdp_sc_member ~ industry_incidents_excl_lag +",
+  as.formula(paste("cdp_sc_member ~ peer_cdp_share_industry_exclcountry_lag + peer_cdp_share_country_excludindustry_lag +",
                    controls_formula, "| headquarter_country + year")),
   cluster = ~ gvkey,
   data = data_complete
 )
 
-fs3_f <- coeftable(fs3)["industry_incidents_excl_lag", "t value"]^2
-cat("First-stage F-statistic:", round(fs3_f, 2), "\n")
+fs3_f <- max(coeftable(fs3)["peer_cdp_share_industry_exclcountry_lag", "t value"]^2,
+             coeftable(fs3)["peer_cdp_share_country_excludindustry_lag", "t value"]^2)
+cat("First-stage F-statistic (max):", round(fs3_f, 2), "\n")
 
 # Reduced form
 rf3 <- feols(
-  as.formula(paste("sbti_commitment_lead1 ~ industry_incidents_excl_lag + esc_incidents_highreach +",
+  as.formula(paste("sbti_commitment_lead1 ~ peer_cdp_share_industry_exclcountry_lag + peer_cdp_share_country_excludindustry_lag + esc_incidents_highreach +",
                    controls_formula, "| headquarter_country + year")),
   cluster = ~ gvkey,
   data = data_complete
 )
 
-rf3_coef <- coef(rf3)["industry_incidents_excl_lag"]
-cat("Reduced form coefficient:", round(rf3_coef, 4), "\n\n")
+rf3_coef <- coef(rf3)["peer_cdp_share_industry_exclcountry_lag"]
+cat("Reduced form (industry excl country):", round(rf3_coef, 4), "\n")
+cat("Reduced form (country excl industry):", round(coef(rf3)["peer_cdp_share_country_excludindustry_lag"], 4), "\n\n")
 
 # Method A: 2SLS
 cat("--- Method A: Standard 2SLS ---\n")
@@ -353,7 +356,7 @@ tsls3 <- feols(
   as.formula(paste("sbti_commitment_lead1 ~ esc_incidents_highreach +",
                    controls_formula,
                    "| headquarter_country + year",
-                   "| cdp_sc_member ~ industry_incidents_excl_lag")),
+                   "| cdp_sc_member ~ peer_cdp_share_industry_exclcountry_lag + peer_cdp_share_country_excludindustry_lag")),
   cluster = ~ gvkey,
   data = data_complete
 )
@@ -367,7 +370,7 @@ cat("Incidents:", round(coef(tsls3)["esc_incidents_highreach"], 4),
 
 results_grid[[spec_counter]] <- list(
   spec = "3A",
-  instruments = "industry_inc",
+  instruments = "orthogonalized",
   method = "2SLS",
   fs_f = fs3_f,
   rf_coef = rf3_coef,
@@ -403,7 +406,7 @@ cat("Control fn:", round(coef(cf3)["fs_resid3"], 4), ", p =",
 
 results_grid[[spec_counter]] <- list(
   spec = "3B",
-  instruments = "industry_inc",
+  instruments = "orthogonalized",
   method = "CF",
   fs_f = fs3_f,
   rf_coef = rf3_coef,
@@ -419,16 +422,16 @@ results_grid[[spec_counter]] <- list(
 spec_counter <- spec_counter + 1
 
 ################################################################################
-# INSTRUMENT 4: peer_cdp + e_disc_lag2 (TWO INSTRUMENTS)
+# INSTRUMENT 4: peer_cdp_country + peer_cdp_industry (TWO INSTRUMENTS)
 ################################################################################
 
 cat("=" %+% strrep("=", 79) %+% "\n")
-cat("INSTRUMENT 4: peer_cdp + e_disc_lag2 (TWO)\n")
+cat("INSTRUMENT 4: peer_cdp_country + peer_cdp_industry (TWO)\n")
 cat("=" %+% strrep("=", 79) %+% "\n\n")
 
 # First-stage
 fs4 <- feols(
-  as.formula(paste("cdp_sc_member ~ peer_cdp_share_country_lag + e_disc_lag2 +",
+  as.formula(paste("cdp_sc_member ~ peer_cdp_share_country_lag + peer_cdp_share_lag +",
                    controls_formula, "| headquarter_country + year")),
   cluster = ~ gvkey,
   data = data_complete
@@ -436,19 +439,19 @@ fs4 <- feols(
 
 # Joint F-test approximation (use max of individual t^2)
 fs4_f <- max(coeftable(fs4)["peer_cdp_share_country_lag", "t value"]^2,
-             coeftable(fs4)["e_disc_lag2", "t value"]^2)
+             coeftable(fs4)["peer_cdp_share_lag", "t value"]^2)
 cat("First-stage F-statistic (max):", round(fs4_f, 2), "\n")
 
 # Reduced form
 rf4 <- feols(
-  as.formula(paste("sbti_commitment_lead1 ~ peer_cdp_share_country_lag + e_disc_lag2 + esc_incidents_highreach +",
+  as.formula(paste("sbti_commitment_lead1 ~ peer_cdp_share_country_lag + peer_cdp_share_lag + esc_incidents_highreach +",
                    controls_formula, "| headquarter_country + year")),
   cluster = ~ gvkey,
   data = data_complete
 )
 
-cat("Reduced form (peer_cdp):", round(coef(rf4)["peer_cdp_share_country_lag"], 4), "\n")
-cat("Reduced form (e_disc):", round(coef(rf4)["e_disc_lag2"], 4), "\n\n")
+cat("Reduced form (country):", round(coef(rf4)["peer_cdp_share_country_lag"], 4), "\n")
+cat("Reduced form (industry):", round(coef(rf4)["peer_cdp_share_lag"], 4), "\n\n")
 
 # Method A: 2SLS
 cat("--- Method A: Standard 2SLS ---\n")
@@ -456,7 +459,7 @@ tsls4 <- feols(
   as.formula(paste("sbti_commitment_lead1 ~ esc_incidents_highreach +",
                    controls_formula,
                    "| headquarter_country + year",
-                   "| cdp_sc_member ~ peer_cdp_share_country_lag + e_disc_lag2")),
+                   "| cdp_sc_member ~ peer_cdp_share_country_lag + peer_cdp_share_lag")),
   cluster = ~ gvkey,
   data = data_complete
 )
@@ -470,7 +473,7 @@ cat("Incidents:", round(coef(tsls4)["esc_incidents_highreach"], 4),
 
 results_grid[[spec_counter]] <- list(
   spec = "4A",
-  instruments = "peer_cdp + e_disc",
+  instruments = "country + industry",
   method = "2SLS",
   fs_f = fs4_f,
   rf_coef = coef(rf4)["peer_cdp_share_country_lag"],
@@ -506,7 +509,7 @@ cat("Control fn:", round(coef(cf4)["fs_resid4"], 4), ", p =",
 
 results_grid[[spec_counter]] <- list(
   spec = "4B",
-  instruments = "peer_cdp + e_disc",
+  instruments = "country + industry",
   method = "CF",
   fs_f = fs4_f,
   rf_coef = coef(rf4)["peer_cdp_share_country_lag"],
@@ -522,37 +525,39 @@ results_grid[[spec_counter]] <- list(
 spec_counter <- spec_counter + 1
 
 ################################################################################
-# INSTRUMENT 5: ALL THREE INSTRUMENTS
+# INSTRUMENT 5: ALL FOUR INSTRUMENTS
 ################################################################################
 
 cat("=" %+% strrep("=", 79) %+% "\n")
-cat("INSTRUMENT 5: peer_cdp + e_disc + industry_inc (THREE)\n")
+cat("INSTRUMENT 5: country + industry + orthogonalized pair (FOUR)\n")
 cat("=" %+% strrep("=", 79) %+% "\n\n")
 
 # First-stage
 fs5 <- feols(
-  as.formula(paste("cdp_sc_member ~ peer_cdp_share_country_lag + e_disc_lag2 + industry_incidents_excl_lag +",
+  as.formula(paste("cdp_sc_member ~ peer_cdp_share_country_lag + peer_cdp_share_lag + peer_cdp_share_industry_exclcountry_lag + peer_cdp_share_country_excludindustry_lag +",
                    controls_formula, "| headquarter_country + year")),
   cluster = ~ gvkey,
   data = data_complete
 )
 
 fs5_f <- max(coeftable(fs5)["peer_cdp_share_country_lag", "t value"]^2,
-             coeftable(fs5)["e_disc_lag2", "t value"]^2,
-             coeftable(fs5)["industry_incidents_excl_lag", "t value"]^2)
+             coeftable(fs5)["peer_cdp_share_lag", "t value"]^2,
+             coeftable(fs5)["peer_cdp_share_industry_exclcountry_lag", "t value"]^2,
+             coeftable(fs5)["peer_cdp_share_country_excludindustry_lag", "t value"]^2)
 cat("First-stage F-statistic (max):", round(fs5_f, 2), "\n")
 
 # Reduced form
 rf5 <- feols(
-  as.formula(paste("sbti_commitment_lead1 ~ peer_cdp_share_country_lag + e_disc_lag2 + industry_incidents_excl_lag + esc_incidents_highreach +",
+  as.formula(paste("sbti_commitment_lead1 ~ peer_cdp_share_country_lag + peer_cdp_share_lag + peer_cdp_share_industry_exclcountry_lag + peer_cdp_share_country_excludindustry_lag + esc_incidents_highreach +",
                    controls_formula, "| headquarter_country + year")),
   cluster = ~ gvkey,
   data = data_complete
 )
 
-cat("Reduced form (peer_cdp):", round(coef(rf5)["peer_cdp_share_country_lag"], 4), "\n")
-cat("Reduced form (e_disc):", round(coef(rf5)["e_disc_lag2"], 4), "\n")
-cat("Reduced form (industry_inc):", round(coef(rf5)["industry_incidents_excl_lag"], 4), "\n\n")
+cat("Reduced form (country):", round(coef(rf5)["peer_cdp_share_country_lag"], 4), "\n")
+cat("Reduced form (industry):", round(coef(rf5)["peer_cdp_share_lag"], 4), "\n")
+cat("Reduced form (ind excl ctry):", round(coef(rf5)["peer_cdp_share_industry_exclcountry_lag"], 4), "\n")
+cat("Reduced form (ctry excl ind):", round(coef(rf5)["peer_cdp_share_country_excludindustry_lag"], 4), "\n\n")
 
 # Method A: 2SLS
 cat("--- Method A: Standard 2SLS ---\n")
@@ -560,7 +565,7 @@ tsls5 <- feols(
   as.formula(paste("sbti_commitment_lead1 ~ esc_incidents_highreach +",
                    controls_formula,
                    "| headquarter_country + year",
-                   "| cdp_sc_member ~ peer_cdp_share_country_lag + e_disc_lag2 + industry_incidents_excl_lag")),
+                   "| cdp_sc_member ~ peer_cdp_share_country_lag + peer_cdp_share_lag + peer_cdp_share_industry_exclcountry_lag + peer_cdp_share_country_excludindustry_lag")),
   cluster = ~ gvkey,
   data = data_complete
 )
@@ -574,7 +579,7 @@ cat("Incidents:", round(coef(tsls5)["esc_incidents_highreach"], 4),
 
 results_grid[[spec_counter]] <- list(
   spec = "5A",
-  instruments = "all_three",
+  instruments = "all_four",
   method = "2SLS",
   fs_f = fs5_f,
   rf_coef = coef(rf5)["peer_cdp_share_country_lag"],
@@ -610,7 +615,7 @@ cat("Control fn:", round(coef(cf5)["fs_resid5"], 4), ", p =",
 
 results_grid[[spec_counter]] <- list(
   spec = "5B",
-  instruments = "all_three",
+  instruments = "all_four",
   method = "CF",
   fs_f = fs5_f,
   rf_coef = coef(rf5)["peer_cdp_share_country_lag"],
